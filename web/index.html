@@ -176,7 +176,10 @@ const poll=async()=>{if(!IN||document.hidden)return;const u=S.me?.unread;try{S.m
  if(S.me?.unread!==u&&S.scr!=='add'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){const y=scrollY;render();scrollTo(0,y)}};
 setInterval(poll,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
 
-async function checkTendorSubscription() {
+let txAccess = false;
+let txCheckBusy = false;
+
+async function txCheckSubscription() {
   const response = await fetch(
     CFG.url + '/functions/v1/subscription-check',
     {
@@ -194,21 +197,22 @@ async function checkTendorSubscription() {
 
   const result = await response.json();
 
-  if (!response.ok || !result.subscribed) {
-    throw new Error('SUBSCRIPTION_REQUIRED');
+  if (!response.ok) {
+    throw new Error(result.error || 'Ошибка проверки подписки');
   }
 
-  return true;
+  return result.subscribed === true;
 }
 
-function showSubscriptionGate() {
-  $('#nav').style.display = 'none';
+function txShowGate(message = 'Подпишитесь на нашу группу для доступа') {
+  txAccess = false;
+  $('#nav').innerHTML = '';
 
   $('#app').innerHTML = `
     <div class="card hero" style="margin-top:50px;text-align:center">
-      <div class="logo" style="font-size:34px">TendorX</div>
-      <h2>🔒 Доступ ограничен</h2>
-      <p>Для входа в приложение необходимо подписаться на нашу группу.</p>
+      <div class="logo">TendorX</div>
+      <h2>🔒 Доступ к приложению</h2>
+      <p>${e(message)}</p>
       <br>
       <a class="btn w"
          style="display:block;text-decoration:none"
@@ -216,32 +220,94 @@ function showSubscriptionGate() {
          Подписаться на группу
       </a>
       <br>
-      <button class="btn ok w" onclick="location.reload()">
+      <button id="tx-check-btn" class="btn ok w"
+        onclick="txVerifyAndEnter()">
         Проверить подписку
       </button>
+      <p id="tx-status" class="mut" style="margin-top:12px"></p>
     </div>
   `;
 }
 
-(async()=>{
+async function txVerifyAndEnter() {
+  if (txCheckBusy) return;
+  txCheckBusy = true;
+
+  const btn = $('#tx-check-btn');
+  const status = $('#tx-status');
+
+  if (btn) btn.disabled = true;
+  if (status) status.textContent = 'Проверяем подписку...';
+
+  try {
+    const subscribed = await txCheckSubscription();
+
+    if (subscribed) {
+      await txOpenApp();
+    } else {
+      if (status) {
+        status.textContent = 'Подписка не найдена. Подпишитесь и повторите проверку.';
+      }
+    }
+  } catch (error) {
+    if (status) status.textContent =
+      'Ошибка проверки. Попробуйте ещё раз.';
+    console.error('TendorX subscription:', error);
+  } finally {
+    txCheckBusy = false;
+    if ($('#tx-check-btn')) $('#tx-check-btn').disabled = false;
+  }
+}
+
+async function txOpenApp() {
+  if (txAccess) return;
+
+  try {
+    await Promise.all([loadPub(), loadMe()]);
+    txAccess = true;
+    render();
+  } catch (error) {
+    txAccess = false;
+    txShowGate('Не удалось загрузить приложение. Попробуйте ещё раз.');
+  }
+}
+
+async function txStart() {
   if (!IN) {
-    showSubscriptionGate();
+    txShowGate('Откройте TendorX через Telegram Mini App.');
     return;
   }
 
   try {
-    await checkTendorSubscription();
-    $('#nav').style.display = '';
-    await Promise.all([loadPub(), loadMe()]);
-    render();
-  } catch (error) {
-    if (error.message === 'SUBSCRIPTION_REQUIRED') {
-      showSubscriptionGate();
+    if (await txCheckSubscription()) {
+      await txOpenApp();
     } else {
-      $('#app').innerHTML =
-        '<div class="card">Не удалось проверить подписку. Попробуйте позже.</div>';
+      txShowGate();
     }
+  } catch (error) {
+    console.error(error);
+    txShowGate('Не удалось проверить подписку. Нажмите «Проверить подписку».');
   }
-})();
+}
+
+window.txVerifyAndEnter = txVerifyAndEnter;
+
+txStart();
+
+setInterval(async () => {
+  if (!IN || document.hidden || txCheckBusy) return;
+
+  try {
+    const subscribed = await txCheckSubscription();
+
+    if (!subscribed && txAccess) {
+      txShowGate('Вы больше не подписаны на группу TendorX.');
+    } else if (subscribed && !txAccess) {
+      await txOpenApp();
+    }
+  } catch (error) {
+    console.error('TendorX periodic check:', error);
+  }
+}, 60000);
 
 </script></body></html>
