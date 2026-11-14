@@ -175,5 +175,71 @@ document.addEventListener('change',async ev=>{if(ev.target.id!=='f_i')return;con
 const poll=async()=>{if(!IN||document.hidden)return;const u=S.me?.unread;try{S.me=await api('me')}catch{return}
  if(S.me?.unread!==u&&S.scr!=='add'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){const y=scrollY;render();scrollTo(0,y)}};
 setInterval(poll,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
-(async()=>{await Promise.all([loadPub(),loadMe()]);render()})();
-</script></body></html>
+
+async function checkTendorSubscription() {
+  const response = await fetch(
+    CFG.url + '/functions/v1/subscription-check',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: CFG.anon,
+        Authorization: 'Bearer ' + CFG.anon
+      },
+      body: JSON.stringify({
+        initData: tg?.initData || ''
+      })
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok || !result.subscribed) {
+    throw new Error('SUBSCRIPTION_REQUIRED');
+  }
+
+  return true;
+}
+
+function showSubscriptionGate() {
+  $('#nav').style.display = 'none';
+
+  $('#app').innerHTML = `
+    <div class="card hero" style="margin-top:50px;text-align:center">
+      <div class="logo" style="font-size:34px">TendorX</div>
+      <h2>🔒 Доступ ограничен</h2>
+      <p>Для входа в приложение необходимо подписаться на нашу группу.</p>
+      <br>
+      <a class="btn w"
+         style="display:block;text-decoration:none"
+         href="https://t.me/TendorX">
+         Подписаться на группу
+      </a>
+      <br>
+      <button class="btn ok w" onclick="location.reload()">
+        Проверить подписку
+      </button>
+    </div>
+  `;
+}
+
+(async()=>{
+  if (!IN) {
+    showSubscriptionGate();
+    return;
+  }
+
+  try {
+    await checkTendorSubscription();
+    $('#nav').style.display = '';
+    await Promise.all([loadPub(), loadMe()]);
+    render();
+  } catch (error) {
+    if (error.message === 'SUBSCRIPTION_REQUIRED') {
+      showSubscriptionGate();
+    } else {
+      $('#app').innerHTML =
+        '<div class="card">Не удалось проверить подписку. Попробуйте позже.</div>';
+    }
+  }
+})();
