@@ -804,7 +804,9 @@ REVOKE ALL ON FUNCTION public.tx_admin_communities(bigint, boolean)
     FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.tx_admin_communities(bigint, boolean)
     TO service_role;
+NOTIFY pgrst, 'reload schema';
 
+COMMIT;
 
 COMMIT;
 
