@@ -87,7 +87,6 @@ BEGIN
 
     v_existing := FOUND;
 
-    -- Already active: no new vote.
     IF v_existing AND v_valid THEN
         RETURN jsonb_build_object(
             'added', false,
@@ -100,8 +99,6 @@ BEGIN
         );
     END IF;
 
-    -- Count recent vote records, excluding the record
-    -- being restored.
     SELECT count(*)
     INTO v_count
     FROM public.votes v
@@ -118,7 +115,6 @@ BEGIN
     END IF;
 
     IF v_existing THEN
-        -- Restoring a previously cancelled vote.
         PERFORM public.tx_rate_limit_consume(
             'vote',
             p_tid,
@@ -135,8 +131,6 @@ BEGIN
 
         v_added := true;
     ELSE
-        -- New vote. Existing BEFORE INSERT trigger
-        -- applies the rate limit.
         INSERT INTO public.votes (community_id, tid)
         VALUES (p_id, p_tid)
         ON CONFLICT (community_id, tid) DO NOTHING;
@@ -187,6 +181,17 @@ BEGIN
             USING ERRCODE = 'TX001';
     END IF;
 
+    IF NOT EXISTS (
+        SELECT 1
+        FROM public.communities
+        WHERE id = p_id
+          AND status = 'approved'
+          AND deleted_at IS NULL
+    ) THEN
+        RAISE EXCEPTION 'Сообщество недоступно'
+            USING ERRCODE = 'TX002';
+    END IF;
+
     UPDATE public.votes
     SET valid = false,
         cancel_reason = 'user_unvote'
@@ -205,6 +210,47 @@ BEGIN
               AND valid = true
         )
     );
+END;
+$function$;
+
+
+-- ---------------------------------------------------------
+-- 2.1. Favorites: exclude deleted communities
+-- ---------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION public.tx_fav(
+    p_tid bigint,
+    p_id bigint
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM public.communities
+        WHERE id = p_id
+          AND status = 'approved'
+          AND deleted_at IS NULL
+    ) THEN
+        RAISE EXCEPTION 'Сообщество недоступно'
+            USING ERRCODE = 'TX002';
+    END IF;
+
+    DELETE FROM public.favorites
+    WHERE tid = p_tid
+      AND community_id = p_id;
+
+    IF FOUND THEN
+        RETURN false;
+    END IF;
+
+    INSERT INTO public.favorites (community_id, tid)
+    VALUES (p_id, p_tid);
+
+    RETURN true;
 END;
 $function$;
 
@@ -584,8 +630,6 @@ $function$;
 
 -- ---------------------------------------------------------
 -- 7. Profile data
--- Deleted communities remain visible to their owner,
--- with deleted_at so the frontend can distinguish them.
 -- ---------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.tx_me(p_tid bigint)
@@ -804,9 +848,8 @@ REVOKE ALL ON FUNCTION public.tx_admin_communities(bigint, boolean)
     FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.tx_admin_communities(bigint, boolean)
     TO service_role;
-NOTIFY pgrst, 'reload schema';
 
-COMMIT;
+NOTIFY pgrst, 'reload schema';
 
 COMMIT;
 
