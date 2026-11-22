@@ -1,1 +1,34 @@
-The requested file reference is not currently visible. Use files.search or files.list to rediscover the file, then retry with a returned ref_id or file_id.
+# TendorX 2.0 — staging build
+
+Новая React/Vite-версия интерфейса в отдельной ветке `benderx-integration`.
+
+## Локальный запуск
+
+```bash
+npm install
+npm run dev
+```
+
+## Сборка
+
+```bash
+npm run build
+```
+
+## Интеграция
+
+- Telegram Mini App SDK передаёт `initData`.
+- Все пользовательские действия идут через существующую Supabase Edge Function `api`.
+- Каталог и категории читаются через публичные RPC `tx_catalog`, `tx_categories`, `tx_media`.
+- Секреты (Telegram Bot Token и Supabase Service Role) остаются только в Secrets Supabase Edge Functions.
+- `public/config.js` содержит только URL проекта и публичный publishable/anon key.
+- Проверка подписки не вызывается: она остаётся отключённой.
+- Демо-пользователи, демо-голоса, демо-избранное и демо-сообщества из Bendor-X не импортируются.
+
+## Текущие функции
+
+Главная, каталог, категории, поиск, сортировка, рейтинг, карточка сообщества, переход в Telegram, голоса и отмена голосов, избранное, отправка заявок, загрузка аватара, профиль, мои публикации, уведомления, очередь модерации, статистика, мягкое удаление и восстановление (если это разрешено ролью).
+
+## Безопасное переключение
+
+Сборка находится в staging-ветке. Основная ветка `main` и текущий сайт не меняются до проверки сборки и Telegram Mini App. Supabase-таблицы, миграции и аккаунты не удаляются и не сбрасываются.
