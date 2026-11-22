@@ -110,7 +110,7 @@ export default function App() {
     const order = opts.sort ?? sort;
     const [catResult, listResult, mediaResult] = await Promise.all([
       supabase.rpc('tx_categories'),
-      supabase.rpc('tx_catalog', { p_q: q.trim() || null, p_cat: cat === 'all' ? null : Number(cat), p_sort: order, p_limit: 200 }),
+      supabase.rpc('tx_catalog', { p_q: q.trim() || null, p_cat: cat === 'all' ? null : Number(cat), p_sort: order, p_limit: 1000 }),
       supabase.rpc('tx_media')
     ]);
     if (catResult.error) throw catResult.error;
