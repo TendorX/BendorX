@@ -96,6 +96,10 @@ AS $function$
                 WHERE t ILIKE q.pat
             )
         )
+        -- Rankings show only communities that have actually earned votes.
+        AND (p_sort <> 'rank_top' OR r.votes > 0)
+        -- Weekly growth lists show only communities with activity in the last 7 days.
+        AND (p_sort <> 'growth' OR r.growth > 0)
     ORDER BY
         CASE
             WHEN p_sort = 'new'
@@ -103,7 +107,7 @@ AS $function$
         END DESC NULLS LAST,
         CASE WHEN p_sort = 'growth' THEN r.growth END DESC NULLS LAST,
         CASE WHEN p_sort = 'growth' THEN r.votes END DESC NULLS LAST,
-        CASE WHEN p_sort NOT IN ('new', 'growth') THEN r.votes END DESC NULLS LAST,
+        CASE WHEN p_sort IN ('top', 'rank_top') THEN r.votes END DESC NULLS LAST,
         CASE WHEN p_sort <> 'new' THEN r.growth END DESC NULLS LAST,
         coalesce(r.approved_at, r.created_at) DESC,
         r.id DESC

@@ -41,7 +41,7 @@ export default function App() {
   const [topCommunities, setTopCommunities] = useState([]);
   const [newCommunities, setNewCommunities] = useState([]);
   const [risingCommunities, setRisingCommunities] = useState([]);
-  const [ratingSort, setRatingSort] = useState('top');
+  const [ratingSort, setRatingSort] = useState('rank_top');
   const [media, setMedia] = useState({});
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -107,7 +107,7 @@ export default function App() {
     const [catResult, listResult, topResult, newResult, risingResult, mediaResult] = await Promise.all([
       supabase.rpc('tx_categories'),
       supabase.rpc('tx_catalog', { p_q: q.trim() || null, p_cat: cat === 'all' ? null : Number(cat), p_sort: order, p_limit: 200 }),
-      supabase.rpc('tx_catalog', { p_sort: 'top', p_limit: 8 }),
+      supabase.rpc('tx_catalog', { p_sort: 'rank_top', p_limit: 8 }),
       supabase.rpc('tx_catalog', { p_sort: 'new', p_limit: 8 }),
       supabase.rpc('tx_catalog', { p_sort: 'growth', p_limit: 8 }),
       supabase.rpc('tx_media')
@@ -138,7 +138,6 @@ export default function App() {
   const openRating = () => {
     setQuery('');
     setCategory('all');
-    setSort(ratingSort);
     setTab('rating');
     loadPublic({ query: '', category: 'all', sort: ratingSort });
   };
@@ -421,7 +420,7 @@ export default function App() {
   const renderRating = () => (
     <>
       <PageHeader eyebrow="ЧЕСТНЫЙ РЕЙТИНГ" title="Лучшие сообщества" subtitle="Позиции формируются по действительным голосам пользователей. Платные размещения не влияют на рейтинг."/>
-      <div className="segmented rating-segmented"><button className={ratingSort==='top'?'active':''} onClick={()=>{setRatingSort('top');setSort('top');loadPublic({query:'',category:'all',sort:'top'});}}>За всё время</button><button className={ratingSort==='growth'?'active':''} onClick={()=>{setRatingSort('growth');setSort('growth');loadPublic({query:'',category:'all',sort:'growth'});}}>За 7 дней</button></div>
+      <div className="segmented rating-segmented"><button className={ratingSort==='rank_top'?'active':''} onClick={()=>{setRatingSort('rank_top');loadPublic({query:'',category:'all',sort:'rank_top'});}}>За всё время</button><button className={ratingSort==='growth'?'active':''} onClick={()=>{setRatingSort('growth');loadPublic({query:'',category:'all',sort:'growth'});}}>За 7 дней</button></div>
       <div className="ranking-list">{communities.map((item,index)=><article className="ranking-card" key={item.id}>
         <div className={`ranking-place place-${index+1}`}>{index+1}</div>
         {avatarUrl(item) ? <img className="ranking-avatar" src={avatarUrl(item)} alt=""/> : <div className="ranking-avatar fallback">{(item.title||'?').slice(0,1).toUpperCase()}</div>}
