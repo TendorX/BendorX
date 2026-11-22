@@ -378,7 +378,7 @@ export default function App() {
   const renderNotifications = () => (
     <>
       <PageHeader eyebrow="ЦЕНТР УВЕДОМЛЕНИЙ" title="Уведомления" subtitle="Новости о статусах твоих публикаций и действиях модерации." action={<button className="icon-button" onClick={()=>loadMe().catch(e=>notify(e.message))}><RefreshCw size={17}/></button>}/>
-      {!initData ? <TelegramGate/> : <div className="notifications-page"><button className="secondary-button full notes-read-button" onClick={async()=>{try{await api('notes_read');await loadMe();notify('Уведомления отмечены прочитанными');}catch(e){notify(e.message);}}}>Отметить прочитанными</button><div className="notes-list">{unreadNotes.length ? unreadNotes.map((note,index)=><div className="note-card" key={`${note.at}-${index}`}><Bell size={16}/><div><b>{note.title}</b><p>{note.body}</p><small>{note.at ? new Date(note.at).toLocaleString('ru-RU') : ''}</small></div></div></div>}
+      {!initData ? <TelegramGate/> : <div className="notifications-page"><button className="secondary-button full notes-read-button" onClick={async()=>{try{await api('notes_read');await loadMe();notify('Уведомления отмечены прочитанными');}catch(e){notify(e.message);}}}>Отметить прочитанными</button><div className="notes-list">{unreadNotes.length ? unreadNotes.map((note,index)=><div className="note-card" key={`${note.at}-${index}`}><Bell size={16}/><div><b>{note.title}</b><p>{note.body}</p><small>{note.at ? new Date(note.at).toLocaleString('ru-RU') : ''}</small></div></div>) : <EmptyState text="Новых уведомлений пока нет."/>}</div></div>}
     </>
   );
 
