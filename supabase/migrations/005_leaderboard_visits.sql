@@ -197,10 +197,7 @@ $function$;
 REVOKE ALL ON FUNCTION public.tx_leaderboard(text, text, integer) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.tx_leaderboard(text, text, integer) TO anon, authenticated, service_role;
 
--- Bendor-X: catalog ordered by votes; recently approved communities use approval time when sorting by newest.
--- Does not alter existing community, vote, user, or category records.
-BEGIN;
-
+-- Catalog order supports the main channel list and search by category.
 CREATE OR REPLACE FUNCTION public.tx_catalog(
     p_q text DEFAULT NULL,
     p_cat integer DEFAULT NULL,
@@ -313,8 +310,7 @@ AS $function$
     LIMIT least(greatest(coalesce(p_limit, 100), 1), 1000);
 $function$;
 
-NOTIFY pgrst, 'reload schema';
-COMMIT;
+
 
 
 NOTIFY pgrst, 'reload schema';
