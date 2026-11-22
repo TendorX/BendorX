@@ -546,7 +546,7 @@ export default function App() {
           </>}
         </section>
       </div>}
-      {selectedQueueItem && <div className="modal-backdrop queue-detail-backdrop"} onClick={()=>setSelectedQueueItem(null)}>
+      {selectedQueueItem && <div className="modal-backdrop queue-detail-backdrop" onClick={()=>setSelectedQueueItem(null)}>
         <section className="queue-detail-modal" onClick={(e)=>e.stopPropagation()}>
           <button className="modal-close" onClick={()=>setSelectedQueueItem(null)} aria-label="Закрыть"><X size={18}/></button>
           <div className="eyebrow">ЗАЯВКА НА МОДЕРАЦИЮ · №{selectedQueueItem.id}</div>
