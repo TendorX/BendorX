@@ -286,7 +286,7 @@ export default function App() {
   );
 
   const nav = [
-    ['home', Home, 'Главная'], ['catalog', Grid2X2, 'Каталог'], ['add', Plus, 'Добавить'], ['rating', Trophy, 'Рейтинг'], ['profile', Users, 'Профиль']
+    ['home', Home, 'Главная'], ['favorites', Bookmark, 'Избранное'], ['add', Plus, 'Добавить'], ['rating', Trophy, 'Рейтинг'], ['profile', Users, 'Профиль']
   ];
 
   const renderHome = () => (
@@ -337,7 +337,13 @@ export default function App() {
     <>
       <PageHeader eyebrow="ЧЕСТНЫЙ РЕЙТИНГ" title="Лучшие сообщества" subtitle="Позиции формируются по действительным голосам пользователей. Платные размещения не влияют на рейтинг."/>
       <div className="segmented"><button className={sort==='top'?'active':''} onClick={()=>{setSort('top');loadPublic({sort:'top'});}}>За всё время</button><button className={sort==='growth'?'active':''} onClick={()=>{setSort('growth');loadPublic({sort:'growth'});}}>За 7 дней</button><button className={sort==='new'?'active':''} onClick={()=>{setSort('new');loadPublic({sort:'new'});}}>Новые</button></div>
-      <div className="community-list">{communities.map((item,index)=><div className="rank-row" key={item.id}><span className={`rank-number ${index<3?'podium':''}`}>{String(index+1).padStart(2,'0')}</span><div className="rank-content"><CommunityCard item={item} compact/></div></div>)}</div>
+      <div className="ranking-list">{communities.map((item,index)=><article className="ranking-card" key={item.id}>
+        <div className={`ranking-place place-${index+1}`}>{index+1}</div>
+        {avatarUrl(item) ? <img className="ranking-avatar" src={avatarUrl(item)} alt=""/> : <div className="ranking-avatar fallback">{(item.title||'?').slice(0,1).toUpperCase()}</div>}
+        <button className="ranking-info" onClick={()=>openCommunity(item)}><b>{item.title}</b><small>@{item.username || 'telegram'} · {item.category || categoryLabel(item.category_id)}</small><span><ThumbsUp size={13}/>{fmt(item.votes)} голосов <i>·</i> <Flame size={13}/>{fmt(item.growth)} за 7 дней</span></button>
+        <div className="ranking-actions"><button className={`icon-button ${favoriteIds.has(Number(item.id))?'selected':''}`} onClick={()=>changeFavorite(item.id)} title="В избранное"><Bookmark size={16}/></button><button className={`vote-button ${votedIds.has(Number(item.id))?'voted':''}`} onClick={()=>changeVote(item.id)}>{votedIds.has(Number(item.id))?'Голос учтён':'Голосовать'}</button></div>
+      </article>)}</div>
+      {!communities.length && <EmptyState text="Пока нет сообществ для рейтинга."/>}
     </>
   );
 
@@ -350,22 +356,45 @@ export default function App() {
         <div className="profile-menu">
           <button onClick={()=>setProfilePage('publications')}><FileText/><span><b>Мои публикации</b><small>Статус заявок и статистика</small></span><ChevronRight/></button>
           <button onClick={()=>setProfilePage('votes')}><ThumbsUp/><span><b>Мои голосования</b><small>Сообщества, за которые ты голосовал</small></span><ChevronRight/></button>
-          <button onClick={()=>setProfilePage('favorites')}><Bookmark/><span><b>Избранное</b><small>Сохранённые сообщества</small></span><ChevronRight/></button>
-          <button onClick={()=>setProfilePage('notifications')}><Bell/><span><b>Уведомления</b><small>Сообщения о твоих публикациях</small></span><ChevronRight/></button>
-          {isStaff && <button onClick={()=>setProfilePage('admin')}><LayoutDashboard/><span><b>Панель управления</b><small>Модерация и статистика</small></span><ChevronRight/></button>}
+          <button onClick={()=>setTab('notifications')}><Bell/><span><b>Уведомления</b><small>Отдельная страница уведомлений</small></span><ChevronRight/></button>
+          {isStaff && <button onClick={()=>{setTab('admin');loadAdmin().catch(e=>notify(e.message));}}><LayoutDashboard/><span><b>Панель управления</b><small>Отдельная страница модерации</small></span><ChevronRight/></button>}
         </div>
-        {profilePage !== 'main' && <div className="subpage-panel"><div className="subpage-heading"><button className="icon-button" onClick={()=>setProfilePage('main')}><ArrowLeft size={17}/></button><h2>{({publications:'Мои публикации',votes:'Мои голосования',favorites:'Избранное',notifications:'Уведомления',admin:'Панель управления'})[profilePage]}</h2></div>
+        {profilePage !== 'main' && <div className="subpage-panel"><div className="subpage-heading"><button className="icon-button" onClick={()=>setProfilePage('main')}><ArrowLeft size={17}/></button><h2>{profilePage==='publications'?'Мои публикации':'Мои голосования'}</h2></div>
           {profilePage==='publications' && <div className="my-pubs">{myCommunities.length ? myCommunities.map((item)=><div className="my-pub" key={item.id}><div><b>{item.title}</b><small>@{item.username} · {fmt(item.votes)} голосов</small></div><span className={`status status-${item.status}`}>{STATUS[item.status]?.[0] || item.status}</span></div>) : <EmptyState text="У тебя пока нет публикаций."/>}</div>}
           {profilePage==='votes' && <div className="community-list">{votedCommunities.length ? votedCommunities.map((item)=><CommunityCard key={item.id} item={item} compact/>) : <EmptyState text="Ты ещё не голосовал за сообщества."/>}</div>}
-          {profilePage==='favorites' && <div className="community-list">{favCommunities.length ? favCommunities.map((item)=><CommunityCard key={item.id} item={item} compact/>) : <EmptyState text="В избранном пока пусто."/>}</div>}
-          {profilePage==='notifications' && <div className="notes-list">{unreadNotes.length ? unreadNotes.map((note,index)=><div className="note-card" key={`${note.at}-${index}`}><Bell size={16}/><div><b>{note.title}</b><p>{note.body}</p><small>{note.at ? new Date(note.at).toLocaleString('ru-RU') : ''}</small></div></div>) : <EmptyState text="Новых уведомлений пока нет."/>}<button className="secondary-button full" onClick={async()=>{try{await api('notes_read');await loadMe();notify('Уведомления отмечены прочитанными');}catch(e){notify(e.message);}}}>Отметить прочитанными</button></div>}
-          {profilePage==='admin' && isStaff && <div className="admin-panel"><div className="metric-grid admin-metrics">{[['Пользователи',stats?.users],['Онлайн 24 ч.',stats?.active24h],['На модерации',stats?.pending],['Голосов',stats?.votes]].map(([label,value])=><div className="admin-stat" key={label}><b>{fmt(value)}</b><small>{label}</small></div>)}</div><div className="section-head"><h3>Очередь модерации</h3><button className="text-action" onClick={()=>loadAdmin()}>Обновить</button></div>{queue.length?queue.map((item)=><div className="queue-item" key={item.id}><b>{item.title}</b><small>@{item.username} · {item.category} · {item.owner}</small><p>{item.description}</p><div className="queue-actions">{canModerate && <><button className="approve-button" onClick={()=>moderate(item,'approved')}><Check size={15}/> Одобрить</button><button className="reject-button" onClick={()=>{setRejecting(item);setRejectReason('');}}><X size={15}/> Отклонить</button></>}</div></div>):<EmptyState text="Очередь модерации пуста."/>}<div className="section-head"><h3>Публикации</h3><button className="text-action" onClick={()=>setShowDeleted(!showDeleted)}>{showDeleted?'Активные':'Удалённые'}</button></div>{canManage && adminItems.map((item)=><div className="my-pub" key={item.id}><div><b>{item.title}</b><small>@{item.username} · {item.status}</small></div>{showDeleted?<button className="icon-button" onClick={()=>adminRestore(item)}><RefreshCw size={16}/></button>:<button className="icon-button danger" onClick={()=>adminDelete(item)}><Trash2 size={16}/></button>}</div>)}</div>}
         </div>}
       </>}
     </>
   );
 
-  const body = tab === 'home' ? renderHome() : tab === 'catalog' ? renderCatalog() : tab === 'add' ? renderAdd() : tab === 'rating' ? renderRating() : renderProfile();
+  const renderFavorites = () => (
+    <>
+      <PageHeader eyebrow="ТВОЯ КОЛЛЕКЦИЯ" title="Избранное" subtitle="Сообщества, которые ты сохранил." action={<button className="icon-button" onClick={()=>refresh(true)}><RefreshCw size={17}/></button>}/>
+      {!initData ? <TelegramGate/> : <div className="community-list">{favCommunities.length ? favCommunities.map(item=><CommunityCard key={item.id} item={item}/>) : <EmptyState text="В избранном пока пусто. Нажми на закладку у понравившегося сообщества, чтобы сохранить его здесь."/>}</div>}
+    </>
+  );
+
+  const renderNotifications = () => (
+    <>
+      <PageHeader eyebrow="ЦЕНТР УВЕДОМЛЕНИЙ" title="Уведомления" subtitle="Новости о статусах твоих публикаций и действиях модерации." action={<button className="icon-button" onClick={()=>loadMe().catch(e=>notify(e.message))}><RefreshCw size={17}/></button>}/>
+      {!initData ? <TelegramGate/> : <div className="notifications-page"><div className="notes-list">{unreadNotes.length ? unreadNotes.map((note,index)=><div className="note-card" key={`${note.at}-${index}`}><Bell size={16}/><div><b>{note.title}</b><p>{note.body}</p><small>{note.at ? new Date(note.at).toLocaleString('ru-RU') : ''}</small></div></div>) : <EmptyState text="Новых уведомлений пока нет."/>}</div><button className="secondary-button full" onClick={async()=>{try{await api('notes_read');await loadMe();notify('Уведомления отмечены прочитанными');}catch(e){notify(e.message);}}}>Отметить прочитанными</button></div>}
+    </>
+  );
+
+  const renderAdmin = () => (
+    <>
+      <PageHeader eyebrow="УПРАВЛЕНИЕ ПЛАТФОРМОЙ" title="Панель модерации" subtitle="Модерация заявок, контроль публикаций и статистика." action={<button className="icon-button" onClick={()=>loadAdmin().catch(e=>notify(e.message))}><RefreshCw size={17}/></button>}/>
+      {!initData ? <TelegramGate/> : !isStaff ? <EmptyState text="У этой учётной записи нет доступа к панели модерации."/> : <div className="admin-page">
+        <div className="metric-grid admin-metrics">{[['Пользователи',stats?.users],['Онлайн 24 ч.',stats?.active24h],['На модерации',stats?.pending],['Голосов',stats?.votes]].map(([label,value])=><div className="admin-stat" key={label}><b>{fmt(value)}</b><small>{label}</small></div>)}</div>
+        <div className="section-head"><h3>Очередь модерации</h3><button className="text-action" onClick={()=>loadAdmin()}>Обновить</button></div>
+        {queue.length?queue.map(item=><div className="queue-item" key={item.id}><b>{item.title}</b><small>@{item.username} · {item.category} · {item.owner}</small><p>{item.description}</p><div className="queue-actions">{canModerate && <><button className="approve-button" onClick={()=>moderate(item,'approved')}><Check size={15}/> Одобрить</button><button className="reject-button" onClick={()=>{setRejecting(item);setRejectReason('');}}><X size={15}/> Отклонить</button></>}</div></div>):<EmptyState text="Очередь модерации пуста."/>}
+        <div className="section-head"><h3>Публикации</h3><button className="text-action" onClick={()=>setShowDeleted(!showDeleted)}>{showDeleted?'Активные':'Удалённые'}</button></div>
+        {canManage && adminItems.map(item=><div className="my-pub" key={item.id}><div><b>{item.title}</b><small>@{item.username} · {item.status}</small></div>{showDeleted?<button className="icon-button" onClick={()=>adminRestore(item)}><RefreshCw size={16}/></button>:<button className="icon-button danger" onClick={()=>adminDelete(item)}><Trash2 size={16}/></button>}</div>)}
+      </div>}
+    </>
+  );
+
+  const body = tab === 'home' ? renderHome() : tab === 'catalog' ? renderCatalog() : tab === 'favorites' ? renderFavorites() : tab === 'add' ? renderAdd() : tab === 'rating' ? renderRating() : tab === 'notifications' ? renderNotifications() : tab === 'admin' ? renderAdmin() : renderProfile();
 
   return (
     <div className="app-shell">
