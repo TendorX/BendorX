@@ -55,6 +55,7 @@ export default function App() {
   const [imagePreview, setImagePreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [queue, setQueue] = useState([]);
+  const [selectedQueueItem, setSelectedQueueItem] = useState(null);
   const [stats, setStats] = useState(null);
   const [adminItems, setAdminItems] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
@@ -388,7 +389,15 @@ export default function App() {
       {!initData ? <TelegramGate/> : !isStaff ? <EmptyState text="У этой учётной записи нет доступа к панели модерации."/> : <div className="admin-page">
         <div className="metric-grid admin-metrics">{[['Пользователи',stats?.users],['Онлайн 24 ч.',stats?.active24h],['На модерации',stats?.pending],['Голосов',stats?.votes]].map(([label,value])=><div className="admin-stat" key={label}><b>{fmt(value)}</b><small>{label}</small></div>)}</div>
         <div className="section-head"><h3>Очередь модерации</h3><button className="text-action" onClick={()=>loadAdmin()}>Обновить</button></div>
-        {queue.length?queue.map(item=><div className="queue-item" key={item.id}><b>{item.title}</b><small>@{item.username} · {item.category} · {item.owner}</small><p>{item.description}</p><div className="queue-actions">{canModerate && <><button className="approve-button" onClick={()=>moderate(item,'approved')}><Check size={15}/> Одобрить</button><button className="reject-button" onClick={()=>{setRejecting(item);setRejectReason('');}}><X size={15}/> Отклонить</button></>}</div></div>):<EmptyState text="Очередь модерации пуста."/>}
+        {queue.length?queue.map(item=><article className="queue-item" key={item.id}>
+          <button className="queue-item-open" onClick={()=>setSelectedQueueItem(item)}>
+            <span className="queue-item-topline"><b>{item.title}</b><span className="status status-pending">На модерации</span></span>
+            <small>@{item.username || 'ссылка не указана'} · {item.category || 'Без категории'} · {item.owner || 'Пользователь Telegram'}</small>
+            <p>{item.description || 'Описание не добавлено.'}</p>
+            <span className="queue-open-hint">Открыть подробности заявки <ChevronRight size={15}/></span>
+          </button>
+          <div className="queue-actions">{canModerate && <><button className="approve-button" onClick={()=>moderate(item,'approved')}><Check size={15}/> Одобрить</button><button className="reject-button" onClick={()=>{setSelectedQueueItem(null);setRejecting(item);setRejectReason('');}}><X size={15}/> Отклонить</button></>}</div>
+        </article>):<EmptyState text="Очередь модерации пуста."/>}
         <div className="section-head"><h3>Публикации</h3><button className="text-action" onClick={()=>setShowDeleted(!showDeleted)}>{showDeleted?'Активные':'Удалённые'}</button></div>
         {canManage && adminItems.map(item=><div className="my-pub" key={item.id}><div><b>{item.title}</b><small>@{item.username} · {item.status}</small></div>{showDeleted?<button className="icon-button" onClick={()=>adminRestore(item)}><RefreshCw size={16}/></button>:<button className="icon-button danger" onClick={()=>adminDelete(item)}><Trash2 size={16}/></button>}</div>)}
       </div>}
@@ -408,6 +417,42 @@ export default function App() {
       <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`}>{nav.map(([id,Icon,label])=><button key={id} className={`${tab===id?'active':''} ${id==='add'?'add-nav':''}`} onClick={()=>{setTab(id);setMobileMenu(false);}}><span><Icon size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
       {toast && <div className="toast-message">{toast}</div>}
       {refreshing && <div className="refresh-indicator"><LoaderCircle className="spin" size={15}/> Обновляем данные</div>}
+      {selectedQueueItem && <div className="modal-backdrop queue-detail-backdrop" onClick={()=>setSelectedQueueItem(null)}>
+        <section className="queue-detail-modal" onClick={(e)=>e.stopPropagation()}>
+          <button className="modal-close" onClick={()=>setSelectedQueueItem(null)} aria-label="Закрыть"><X size={18}/></button>
+          <div className="eyebrow">ЗАЯВКА НА МОДЕРАЦИЮ · №{selectedQueueItem.id}</div>
+          <h2>{selectedQueueItem.title}</h2>
+          <span className="status status-pending">На модерации</span>
+          <div className="queue-detail-section">
+            <h3><FileText size={16}/> Описание</h3>
+            <p>{selectedQueueItem.description || 'Отправитель не добавил описание.'}</p>
+          </div>
+          <div className="queue-detail-grid">
+            <div><small>Категория</small><b>{selectedQueueItem.category || 'Не указана'}</b></div>
+            <div><small>Тип сообщества</small><b>{selectedQueueItem.kind === 'channel' ? 'Канал' : selectedQueueItem.kind === 'supergroup' ? 'Супергруппа' : 'Группа / чат'}</b></div>
+            <div><small>Отправлено</small><b>{selectedQueueItem.at ? new Date(selectedQueueItem.at).toLocaleString('ru-RU') : 'Дата не указана'}</b></div>
+            <div><small>Теги</small><b>{Array.isArray(selectedQueueItem.tags) && selectedQueueItem.tags.length ? selectedQueueItem.tags.join(', ') : 'Нет тегов'}</b></div>
+          </div>
+          <div className="queue-detail-section">
+            <h3><Send size={16}/> Telegram-сообщество</h3>
+            <b className="queue-detail-username">@{selectedQueueItem.username || 'username не указан'}</b>
+            <button className="secondary-button full" disabled={!selectedQueueItem.username} onClick={()=>openTelegram(selectedQueueItem.username)}>Открыть канал в Telegram <ExternalLink size={15}/></button>
+          </div>
+          <div className="queue-detail-section queue-sender-section">
+            <h3><Users size={16}/> Кто отправил заявку</h3>
+            <div className="queue-sender-card">
+              <span className="queue-sender-avatar">{(selectedQueueItem.owner || 'П').slice(0,1).toUpperCase()}</span>
+              <span><b>{selectedQueueItem.owner || 'Пользователь Telegram'}</b><small>{selectedQueueItem.owner_username ? '@' + String(selectedQueueItem.owner_username).replace(/^@/,'') : 'Telegram username не указан'}</small>{selectedQueueItem.owner_tid && <small>ID: {selectedQueueItem.owner_tid}</small>}</span>
+            </div>
+            <button className="secondary-button full" disabled={!selectedQueueItem.owner_username && !selectedQueueItem.owner_tid} onClick={()=>openTelegramUser(selectedQueueItem.owner_username,selectedQueueItem.owner_tid)}>Открыть профиль отправителя <ExternalLink size={15}/></button>
+            {!selectedQueueItem.owner_username && !selectedQueueItem.owner_tid && <p className="queue-profile-hint">Данные профиля появятся после применения SQL-миграции в Supabase.</p>}
+          </div>
+          {canModerate && <div className="queue-detail-actions">
+            <button className="approve-button" onClick={()=>moderate(selectedQueueItem,'approved')}><Check size={16}/> Одобрить заявку</button>
+            <button className="reject-button" onClick={()=>{setRejecting(selectedQueueItem);setSelectedQueueItem(null);setRejectReason('');}}><X size={16}/> Отклонить</button>
+          </div>}
+        </section>
+      </div>}
       {details && <div className="modal-backdrop" onClick={()=>setDetails(null)}><section className="detail-modal" onClick={(e)=>e.stopPropagation()}><button className="modal-close" onClick={()=>setDetails(null)}><X size={18}/></button><div className="detail-avatar">{avatarUrl(details)?<img src={avatarUrl(details)} alt=""/>:(details.title||'?').slice(0,1)}</div><div className="eyebrow">{details.category || categoryLabel(details.category_id)}</div><h2>{details.title}</h2><p className="detail-username">@{details.username}</p><p>{details.description || 'Описание не добавлено.'}</p><div className="detail-stats"><Metric icon={Trophy} value={fmt(details.rank)} label="Место"/><Metric icon={ThumbsUp} value={fmt(details.votes)} label="Голоса"/><Metric icon={Flame} value={`+${fmt(details.growth)}`} label="За неделю"/></div><div className="detail-actions"><button className="primary-button" onClick={()=>changeVote(details.id)}>{votedIds.has(Number(details.id))?'Отменить голос':'Проголосовать'}</button><button className="secondary-button" onClick={()=>openTelegram(details.username)}>Открыть в Telegram <ExternalLink size={15}/></button></div></section></div>}
       {rejecting && <div className="modal-backdrop" onClick={()=>setRejecting(null)}><section className="confirm-modal" onClick={(e)=>e.stopPropagation()}><button className="modal-close" onClick={()=>setRejecting(null)}><X size={18}/></button><h2>Отклонить публикацию</h2><p>{rejecting.title}</p><label>Причина (минимум 3 символа)</label><textarea rows={3} value={rejectReason} onChange={(e)=>setRejectReason(e.target.value)} placeholder="Укажи причину отказа"/><button className="reject-button full" disabled={rejectReason.trim().length<3} onClick={()=>moderate(rejecting,'rejected',rejectReason)}>Подтвердить отклонение</button></section></div>}
       <footer className="footer-note">Bendor-X · Каталог Telegram-сообществ</footer>
