@@ -186,3 +186,63 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
  .queue-detail-actions{flex-direction:column}
  .queue-item-topline{align-items:flex-start}
 }
+
+
+/* Keep moderation decision buttons visible above the fixed bottom navigation */
+@media (max-width:560px) {
+  .queue-detail-backdrop {
+    align-items:center;
+    padding:12px 10px calc(82px + env(safe-area-inset-bottom));
+  }
+  .queue-detail-modal {
+    max-height:calc(100dvh - 108px - env(safe-area-inset-bottom));
+    padding:17px 13px 14px;
+    border-radius:16px;
+  }
+  .queue-detail-modal h2 {
+    margin:7px 38px 9px 0;
+    font-size:18px;
+  }
+  .queue-detail-section {
+    gap:8px;
+    margin-top:14px;
+    padding-top:12px;
+  }
+  .queue-detail-grid {
+    margin-top:12px;
+  }
+  .queue-detail-actions {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:7px;
+    margin-top:15px;
+  }
+  .queue-detail-actions button {
+    display:flex;
+    min-width:0;
+    min-height:38px;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    padding:8px 5px;
+    font-size:10px;
+    line-height:1.15;
+    white-space:nowrap;
+  }
+}
+@media (max-width:360px) {
+  .queue-detail-backdrop {
+    padding-right:7px;
+    padding-left:7px;
+  }
+  .queue-detail-actions button {
+    gap:3px;
+    padding:7px 3px;
+    font-size:9px;
+  }
+  .queue-detail-actions button svg {
+    width:13px;
+    height:13px;
+    flex:none;
+  }
+}
