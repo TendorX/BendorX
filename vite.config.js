@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/BendorX/web/',
+  base: '/BendorX/',
   build: {
     outDir: 'web',
     emptyOutDir: true,
