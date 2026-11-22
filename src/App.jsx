@@ -187,6 +187,18 @@ export default function App() {
     else window.open(link, '_blank', 'noopener,noreferrer');
   };
 
+  const openTelegramUser = (username, userId) => {
+    if (username) {
+      openTelegram(username);
+      return;
+    }
+    if (userId) {
+      window.location.href = `tg://user?id=${encodeURIComponent(String(userId))}`;
+      return;
+    }
+    notify('У отправителя нет доступной ссылки на Telegram-профиль.');
+  };
+
   const uploadAvatar = async () => {
     if (!imageFile) return '';
     if (!supabase) throw new Error('Supabase не настроен');
@@ -240,7 +252,7 @@ export default function App() {
   const moderate = async (item, status, reason = '') => {
     try {
       await api('moderate', { id: item.id, status, reason });
-      setRejecting(null); setRejectReason('');
+      setRejecting(null); setRejectReason(''); setSelectedQueueItem(null);
       await reloadEverything();
       notify(status === 'approved' ? 'Сообщество опубликовано' : 'Статус обновлён');
     } catch (err) { notify(err.message); }
