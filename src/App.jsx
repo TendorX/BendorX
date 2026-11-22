@@ -67,7 +67,7 @@ export default function App() {
   const telegramUser = tg?.initDataUnsafe?.user || null;
   const isStaff = STAFF.includes(me?.role);
   const canModerate = ['master_admin', 'admin', 'moderator'].includes(me?.role);
-  const canManage = ['master_admin', 'admin'].includes(me?.role);
+  const canManage = ['master_admin', 'admin', 'moderator'].includes(me?.role);
   const votedIds = useMemo(() => new Set((me?.voted || []).map(Number)), [me]);
   const favoriteIds = useMemo(() => new Set((me?.favs || []).map(Number)), [me]);
   const unreadNotes = me?.notes || [];
@@ -123,11 +123,10 @@ export default function App() {
 
   const loadAdmin = useCallback(async () => {
     if (!initData || !STAFF.includes(me?.role)) return;
-    const [q, s, all] = await Promise.all([
-      api('queue'), api('stats'), api('admin_list', { deleted: showDeleted })
-    ]);
+    const [q, s] = await Promise.all([api('queue'), api('stats')]);
+    const all = canManage ? await api('admin_list', { deleted: showDeleted }) : [];
     setQueue(q || []); setStats(s || null); setAdminItems(all || []);
-  }, [api, initData, me?.role, showDeleted]);
+  }, [api, initData, me?.role, showDeleted, canManage]);
 
   const refresh = useCallback(async (quiet = false) => {
     if (quiet) setRefreshing(true); else setLoading(true);
@@ -304,7 +303,7 @@ export default function App() {
       <div className="section-head"><div><div className="eyebrow">ОБЗОР</div><h2>Популярное сейчас</h2></div><button className="text-action" onClick={() => setTab('rating')}>Весь рейтинг <ArrowRight size={15}/></button></div>
       {topCommunities.length ? <div className="community-list">{topCommunities.slice(0, 5).map((item) => <CommunityCard key={item.id} item={item} compact/>)}</div> : <EmptyState text="Пока нет опубликованных сообществ."/>}
       <div className="section-head"><div><div className="eyebrow">НАВИГАЦИЯ</div><h2>Категории</h2></div><button className="text-action" onClick={() => setTab('catalog')}>Все категории <ArrowRight size={15}/></button></div>
-      <div className="category-grid">{categories.slice(0, 8).map((item, index) => <button className="category-tile" key={item.id} onClick={() => {setCategory(String(item.id));setTab('catalog');}}><span className={`category-symbol tone-${index % 6}`}>{item.icon || '✦'}</span><span><b>{item.title}</b><small>{fmt(item.groups)} сообществ</small></span><ChevronRight size={16}/></button>)}</div>
+      <div className="category-grid">{categories.slice(0, 8).map((item, index) => <button className="category-tile" key={item.id} onClick={() => {const next=String(item.id);setCategory(next);setTab('catalog');loadPublic({category:next});}}><span className={`category-symbol tone-${index % 6}`}>{item.icon || '✦'}</span><span><b>{item.title}</b><small>{fmt(item.groups)} сообществ</small></span><ChevronRight size={16}/></button>)}</div>
     </>
   );
 
