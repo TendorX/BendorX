@@ -15,6 +15,6 @@
 
 ## Публичная версия
 
-Текущий адрес GitHub Pages: https://tendorx.github.io/TendorX/web/
+Текущий адрес GitHub Pages: https://tendorx.github.io/BendorX/web/
 
-> Адрес GitHub Pages пока сохраняет старый путь репозитория. Его можно изменить отдельно при переименовании репозитория на GitHub.
+
