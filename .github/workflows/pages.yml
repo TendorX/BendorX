@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -31,6 +31,17 @@ jobs:
         run: npm install
       - name: Build new app into web
         run: npm run build
+      - name: Save built interface into web folder in repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A web
+          if git diff --cached --quiet; then
+            echo "web folder already up to date"
+          else
+            git commit -m "Build new TendorX interface in web folder"
+            git push
+          fi
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
