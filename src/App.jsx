@@ -300,10 +300,10 @@ export default function App() {
         </div>
         <div className="hero-art"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="hero-cube"><Grid2X2 size={42}/></div><div className="float-chip chip-top"><Trophy size={15}/> Рейтинг</div><div className="float-chip chip-bottom"><Users size={15}/> Сообщества</div></div>
       </section>
+      <div className="section-head"><div><div className="eyebrow">НАВИГАЦИЯ</div><h2>Категории</h2></div><button className="text-action" onClick={() => setTab('catalog')}>Все категории <ArrowRight size={15}/></button></div>
+      <div className="category-grid">{categories.map((item, index) => <button className="category-tile" key={item.id} onClick={() => {const next=String(item.id);setCategory(next);setTab('catalog');loadPublic({category:next});}}><span className={`category-symbol tone-${index % 6}`}>{item.icon || '✦'}</span><span><b>{item.title}</b><small>{fmt(item.groups)} сообществ</small></span><ChevronRight size={16}/></button>)}</div>
       <div className="section-head"><div><div className="eyebrow">ОБЗОР</div><h2>Популярное сейчас</h2></div><button className="text-action" onClick={() => setTab('rating')}>Весь рейтинг <ArrowRight size={15}/></button></div>
       {topCommunities.length ? <div className="community-list">{topCommunities.slice(0, 5).map((item) => <CommunityCard key={item.id} item={item} compact/>)}</div> : <EmptyState text="Пока нет опубликованных сообществ."/>}
-      <div className="section-head"><div><div className="eyebrow">НАВИГАЦИЯ</div><h2>Категории</h2></div><button className="text-action" onClick={() => setTab('catalog')}>Все категории <ArrowRight size={15}/></button></div>
-      <div className="category-grid">{categories.slice(0, 8).map((item, index) => <button className="category-tile" key={item.id} onClick={() => {const next=String(item.id);setCategory(next);setTab('catalog');loadPublic({category:next});}}><span className={`category-symbol tone-${index % 6}`}>{item.icon || '✦'}</span><span><b>{item.title}</b><small>{fmt(item.groups)} сообществ</small></span><ChevronRight size={16}/></button>)}</div>
     </>
   );
 
@@ -398,7 +398,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className="topbar"><button className="brand" onClick={()=>setTab('home')}><span className="brand-mark"><Grid2X2 size={19}/></span><span>Tendor<span>X</span><small>TELEGRAM DISCOVERY</small></span></button><div className="topbar-actions"><button className="icon-button" onClick={()=>setSearchOpen(!searchOpen)} aria-label="Поиск"><Search size={18}/></button><button className="icon-button" onClick={()=>setTab('profile')} aria-label="Профиль"><Users size={18}/></button><button className="menu-button" onClick={()=>setMobileMenu(!mobileMenu)}><Menu size={20}/></button></div></header>
+      <header className="topbar"><button className="brand" onClick={()=>setTab('home')}><span className="brand-mark"><Grid2X2 size={19}/></span><span>Tendor<span>X</span><small>TELEGRAM DISCOVERY</small></span></button><div className="topbar-actions"><button className="icon-button" onClick={()=>setSearchOpen(!searchOpen)} aria-label="Поиск"><Search size={18}/></button><button className="icon-button" onClick={()=>setTab('profile')} aria-label="Профиль"><Users size={18}/></button></div></header>
       {searchOpen && <div className="global-search"><Search size={18}/><input autoFocus value={query} onChange={(e)=>setQuery(e.target.value)} onKeyDown={(e)=>{if(e.key==='Enter'){setTab('catalog');loadPublic({query:e.target.value});setSearchOpen(false);}}} placeholder="Найти сообщество…"/><button onClick={()=>setSearchOpen(false)}><X size={17}/></button></div>}
       <main className="main-content">
         {error && <div className="error-banner"><span>{error}</span><button onClick={()=>refresh()}><RefreshCw size={15}/> Повторить</button></div>}
