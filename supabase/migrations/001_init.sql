@@ -1,4 +1,4 @@
--- TendorX 001_init. Идемпотентно. Только новые объекты. Клиент к таблицам доступа не имеет: чтение каталога через
+-- BendorX 001_init. Идемпотентно. Только новые объекты. Клиент к таблицам доступа не имеет: чтение каталога через
 -- tx_catalog/tx_categories (anon), все записи и роли — только Edge Function api (service_role).
 begin;
 create table if not exists profiles(tid bigint primary key, name text not null default 'Пользователь', username text,

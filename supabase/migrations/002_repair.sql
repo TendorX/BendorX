@@ -1,6 +1,6 @@
 
 -- =========================================================
--- TENDORX — 002_repair.sql
+-- BENDORX — 002_repair.sql
 -- Additive repair migration
 -- Existing data and RLS policies are preserved.
 -- =========================================================

@@ -1,21 +1,20 @@
-## Ну здарова...👋
-Короче меня зовут Игаарь, шо тут происходит я вообще не в курсе...
+# Bendor-X
 
-<!--
-**TendorX/TendorX** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+Каталог Telegram-сообществ в формате Telegram Mini App.
 
-Here are some ideas to get you started:
+## Проект
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+- Интерфейс: React + Vite
+- Публикация: GitHub Pages
+- Авторизация и данные: существующий проект Supabase
+- Telegram-бот: [@BendorX_bot](https://t.me/BendorX_bot)
 
+## Разработка
 
-## Новая версия интерфейса
-Исходники React находятся в `src/`. При сборке готовое приложение записывается в `web/` и публикуется через GitHub Pages. Данные, Telegram-авторизация и серверная логика остаются в существующем Supabase-проекте.
+Исходный код приложения находится в папке `src/`. Команда `npm run build` собирает готовую версию в `web/`. GitHub Actions автоматически собирает и публикует изменения из ветки `main`.
+
+## Публичная версия
+
+Текущий адрес GitHub Pages: https://tendorx.github.io/TendorX/web/
+
+> Адрес GitHub Pages пока сохраняет старый путь репозитория. Его можно изменить отдельно при переименовании репозитория на GitHub.

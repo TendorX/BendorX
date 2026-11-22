@@ -591,4 +591,4 @@ export default function App() {
 
 function EmptyState({ text }) { return <div className="empty-state"><span><Search size={22}/></span><p>{text}</p></div>; }
 function Metric({ icon: Icon, value, label }) { return <div className="metric"><span><Icon size={16}/></span><b>{value}</b><small>{label}</small></div>; }
-function TelegramGate() { return <div className="telegram-gate"><span><LogIn size={25}/></span><h3>Открой Bendor-X в Telegram</h3><p>Для голосования, избранного, публикаций и профиля нужна подтверждённая авторизация Telegram.</p><a href="https://t.me/TendorX" target="_blank" rel="noreferrer">Перейти к боту <ArrowRight size={15}/></a></div>; }
+function TelegramGate() { return <div className="telegram-gate"><span><LogIn size={25}/></span><h3>Открой Bendor-X в Telegram</h3><p>Для голосования, избранного, публикаций и профиля нужна подтверждённая авторизация Telegram.</p><a href="https://t.me/BendorX_bot" target="_blank" rel="noreferrer">Перейти к боту <ArrowRight size={15}/></a></div>; }
