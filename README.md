@@ -15,6 +15,6 @@
 
 ## Публичная версия
 
-Текущий адрес GitHub Pages: https://tendorx.github.io/BendorX/web/
+Текущий адрес GitHub Pages: https://tendorx.github.io/BendorX/
 
 
