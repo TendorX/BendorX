@@ -7,6 +7,9 @@ export default defineConfig({
   build: {
     outDir: 'web',
     emptyOutDir: true,
-    sourcemap: false
+    sourcemap: false,
+    rollupOptions: {
+      input: 'app.html'
+    }
   }
 });
