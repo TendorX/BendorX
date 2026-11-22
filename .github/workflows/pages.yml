@@ -1,4 +1,4 @@
-name: Build TendorX interface
+name: Build Bendor-X interface
 
 on:
   push:
@@ -34,6 +34,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No generated changes"
           else
-            git commit -m "Build TendorX interface"
+            git commit -m "Build Bendor-X interface"
             git push
           fi

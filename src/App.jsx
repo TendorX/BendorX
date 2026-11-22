@@ -80,7 +80,7 @@ export default function App() {
   }, []);
 
   const api = useCallback(async (action, payload = {}) => {
-    if (!initData) throw new Error('Открой TendorX через Telegram, чтобы войти в аккаунт.');
+    if (!initData) throw new Error('Открой Bendor-X через Telegram, чтобы войти в аккаунт.');
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
@@ -378,7 +378,7 @@ export default function App() {
   const renderNotifications = () => (
     <>
       <PageHeader eyebrow="ЦЕНТР УВЕДОМЛЕНИЙ" title="Уведомления" subtitle="Новости о статусах твоих публикаций и действиях модерации." action={<button className="icon-button" onClick={()=>loadMe().catch(e=>notify(e.message))}><RefreshCw size={17}/></button>}/>
-      {!initData ? <TelegramGate/> : <div className="notifications-page"><div className="notes-list">{unreadNotes.length ? unreadNotes.map((note,index)=><div className="note-card" key={`${note.at}-${index}`}><Bell size={16}/><div><b>{note.title}</b><p>{note.body}</p><small>{note.at ? new Date(note.at).toLocaleString('ru-RU') : ''}</small></div></div>) : <EmptyState text="Новых уведомлений пока нет."/>}</div><button className="secondary-button full" onClick={async()=>{try{await api('notes_read');await loadMe();notify('Уведомления отмечены прочитанными');}catch(e){notify(e.message);}}}>Отметить прочитанными</button></div>}
+      {!initData ? <TelegramGate/> : <div className="notifications-page"><button className="secondary-button full notes-read-button" onClick={async()=>{try{await api('notes_read');await loadMe();notify('Уведомления отмечены прочитанными');}catch(e){notify(e.message);}}}>Отметить прочитанными</button><div className="notes-list">{unreadNotes.length ? unreadNotes.map((note,index)=><div className="note-card" key={`${note.at}-${index}`}><Bell size={16}/><div><b>{note.title}</b><p>{note.body}</p><small>{note.at ? new Date(note.at).toLocaleString('ru-RU') : ''}</small></div></div></div>}
     </>
   );
 
@@ -399,22 +399,22 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className="topbar"><button className="brand" onClick={()=>setTab('home')}><span className="brand-mark"><Grid2X2 size={19}/></span><span>Tendor<span>X</span><small>TELEGRAM DISCOVERY</small></span></button><div className="topbar-actions"><button className="icon-button" onClick={()=>setSearchOpen(!searchOpen)} aria-label="Поиск"><Search size={18}/></button><button className="icon-button" onClick={()=>setTab('profile')} aria-label="Профиль"><Users size={18}/></button></div></header>
+      <header className="topbar"><button className="brand" onClick={()=>setTab('home')} aria-label="Bendor-X — главная"><span className="brand-mark" aria-hidden="true"><b>B</b><i>X</i></span><span className="brand-name">Bendor<span>-X</span><small>TELEGRAM DISCOVERY</small></span></button><div className="topbar-actions"><button className="icon-button" onClick={()=>setSearchOpen(!searchOpen)} aria-label="Поиск"><Search size={18}/></button><button className="icon-button" onClick={()=>setTab('profile')} aria-label="Профиль"><Users size={18}/></button></div></header>
       {searchOpen && <div className="global-search"><Search size={18}/><input autoFocus value={query} onChange={(e)=>setQuery(e.target.value)} onKeyDown={(e)=>{if(e.key==='Enter'){setTab('catalog');loadPublic({query:e.target.value});setSearchOpen(false);}}} placeholder="Найти сообщество…"/><button onClick={()=>setSearchOpen(false)}><X size={17}/></button></div>}
       <main className="main-content">
         {error && <div className="error-banner"><span>{error}</span><button onClick={()=>refresh()}><RefreshCw size={15}/> Повторить</button></div>}
-        {loading ? <div className="loading-state"><LoaderCircle className="spin" size={28}/><span>Загружаем TendorX…</span></div> : body}
+        {loading ? <div className="loading-state"><LoaderCircle className="spin" size={28}/><span>Загружаем Bendor-X…</span></div> : body}
       </main>
       <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`}>{nav.map(([id,Icon,label])=><button key={id} className={`${tab===id?'active':''} ${id==='add'?'add-nav':''}`} onClick={()=>{setTab(id);setMobileMenu(false);}}><span><Icon size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
       {toast && <div className="toast-message">{toast}</div>}
       {refreshing && <div className="refresh-indicator"><LoaderCircle className="spin" size={15}/> Обновляем данные</div>}
       {details && <div className="modal-backdrop" onClick={()=>setDetails(null)}><section className="detail-modal" onClick={(e)=>e.stopPropagation()}><button className="modal-close" onClick={()=>setDetails(null)}><X size={18}/></button><div className="detail-avatar">{avatarUrl(details)?<img src={avatarUrl(details)} alt=""/>:(details.title||'?').slice(0,1)}</div><div className="eyebrow">{details.category || categoryLabel(details.category_id)}</div><h2>{details.title}</h2><p className="detail-username">@{details.username}</p><p>{details.description || 'Описание не добавлено.'}</p><div className="detail-stats"><Metric icon={Trophy} value={fmt(details.rank)} label="Место"/><Metric icon={ThumbsUp} value={fmt(details.votes)} label="Голоса"/><Metric icon={Flame} value={`+${fmt(details.growth)}`} label="За неделю"/></div><div className="detail-actions"><button className="primary-button" onClick={()=>changeVote(details.id)}>{votedIds.has(Number(details.id))?'Отменить голос':'Проголосовать'}</button><button className="secondary-button" onClick={()=>openTelegram(details.username)}>Открыть в Telegram <ExternalLink size={15}/></button></div></section></div>}
       {rejecting && <div className="modal-backdrop" onClick={()=>setRejecting(null)}><section className="confirm-modal" onClick={(e)=>e.stopPropagation()}><button className="modal-close" onClick={()=>setRejecting(null)}><X size={18}/></button><h2>Отклонить публикацию</h2><p>{rejecting.title}</p><label>Причина (минимум 3 символа)</label><textarea rows={3} value={rejectReason} onChange={(e)=>setRejectReason(e.target.value)} placeholder="Укажи причину отказа"/><button className="reject-button full" disabled={rejectReason.trim().length<3} onClick={()=>moderate(rejecting,'rejected',rejectReason)}>Подтвердить отклонение</button></section></div>}
-      <footer className="footer-note">TendorX · Каталог Telegram-сообществ</footer>
+      <footer className="footer-note">Bendor-X · Каталог Telegram-сообществ</footer>
     </div>
   );
 }
 
 function EmptyState({ text }) { return <div className="empty-state"><span><Search size={22}/></span><p>{text}</p></div>; }
 function Metric({ icon: Icon, value, label }) { return <div className="metric"><span><Icon size={16}/></span><b>{value}</b><small>{label}</small></div>; }
-function TelegramGate() { return <div className="telegram-gate"><span><LogIn size={25}/></span><h3>Открой TendorX в Telegram</h3><p>Для голосования, избранного, публикаций и профиля нужна подтверждённая авторизация Telegram.</p><a href="https://t.me/TendorX" target="_blank" rel="noreferrer">Перейти к боту <ArrowRight size={15}/></a></div>; }
+function TelegramGate() { return <div className="telegram-gate"><span><LogIn size={25}/></span><h3>Открой Bendor-X в Telegram</h3><p>Для голосования, избранного, публикаций и профиля нужна подтверждённая авторизация Telegram.</p><a href="https://t.me/TendorX" target="_blank" rel="noreferrer">Перейти к боту <ArrowRight size={15}/></a></div>; }
