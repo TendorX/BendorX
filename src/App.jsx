@@ -119,9 +119,9 @@ export default function App() {
     if (risingResult.error) throw risingResult.error;
     setCategories(catResult.data || []);
     setCommunities(listResult.data || []);
-    setTopCommunities(topResult.data || []);
+    setTopCommunities((topResult.data || []).filter((item) => Number(item.votes || 0) > 0));
     setNewCommunities(newResult.data || []);
-    setRisingCommunities(risingResult.data || []);
+    setRisingCommunities((risingResult.data || []).filter((item) => Number(item.growth || 0) > 0));
     const map = {};
     (mediaResult.data || []).forEach((item) => { map[item.id] = item.avatar_path; });
     setMedia(map);
@@ -294,6 +294,10 @@ export default function App() {
   };
 
   const filtered = communities;
+  const ratingCommunities = useMemo(
+    () => communities.filter((item) => ratingSort === 'growth' ? Number(item.growth || 0) > 0 : Number(item.votes || 0) > 0),
+    [communities, ratingSort]
+  );
   const recommendedCommunities = useMemo(() => {
     const freshBoost = new Map(newCommunities.map((item, index) => [Number(item.id), 18 - index]));
     const unique = new Map();
@@ -454,13 +458,13 @@ export default function App() {
     <>
       <PageHeader eyebrow="ЧЕСТНЫЙ РЕЙТИНГ" title="Лучшие сообщества" subtitle="Позиции формируются по действительным голосам пользователей. Платные размещения не влияют на рейтинг."/>
       <div className="segmented rating-segmented"><button className={ratingSort==='rank_top'?'active':''} onClick={()=>{setRatingSort('rank_top');loadPublic({query:'',category:'all',sort:'rank_top'});}}>За всё время</button><button className={ratingSort==='growth'?'active':''} onClick={()=>{setRatingSort('growth');loadPublic({query:'',category:'all',sort:'growth'});}}>За 7 дней</button></div>
-      <div className="ranking-list">{communities.map((item,index)=><article className="ranking-card" key={item.id}>
+      <div className="ranking-list">{ratingCommunities.map((item,index)=><article className="ranking-card" key={item.id}>
         <div className={`ranking-place place-${index+1}`}>{index+1}</div>
         {avatarUrl(item) ? <img className="ranking-avatar" src={avatarUrl(item)} alt=""/> : <div className="ranking-avatar fallback">{(item.title||'?').slice(0,1).toUpperCase()}</div>}
         <button className="ranking-info" onClick={()=>openCommunity(item)}><b>{item.title}</b><small>@{item.username || 'telegram'} · {item.category || categoryLabel(item.category_id)}</small><span><ThumbsUp size={13}/>{fmt(item.votes)} голосов <i>·</i> <Flame size={13}/>{fmt(item.growth)} за 7 дней</span></button>
         <div className="ranking-actions"><button className={`icon-button ${favoriteIds.has(Number(item.id))?'selected':''}`} onClick={()=>changeFavorite(item.id)} title="В избранное"><Bookmark size={16}/></button><button className={`vote-button ${votedIds.has(Number(item.id))?'voted':''}`} onClick={()=>changeVote(item.id)}>{votedIds.has(Number(item.id))?'Голос учтён':'Голосовать'}</button></div>
       </article>)}</div>
-      {!communities.length && <EmptyState text="Пока нет сообществ для рейтинга."/>}
+      {!ratingCommunities.length && <EmptyState text={ratingSort === 'growth' ? "За последние 7 дней пока нет новых голосов." : "Пока нет сообществ с голосами. Посмотри свежие публикации на главной."}/>} 
     </>
   );
 
