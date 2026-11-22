@@ -39,6 +39,9 @@ export default function App() {
   const [categories, setCategories] = useState([]);
   const [communities, setCommunities] = useState([]);
   const [topCommunities, setTopCommunities] = useState([]);
+  const [newCommunities, setNewCommunities] = useState([]);
+  const [risingCommunities, setRisingCommunities] = useState([]);
+  const [ratingSort, setRatingSort] = useState('top');
   const [media, setMedia] = useState({});
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -101,21 +104,44 @@ export default function App() {
     const q = opts.query ?? query;
     const cat = opts.category ?? category;
     const order = opts.sort ?? sort;
-    const [catResult, listResult, topResult, mediaResult] = await Promise.all([
+    const [catResult, listResult, topResult, newResult, risingResult, mediaResult] = await Promise.all([
       supabase.rpc('tx_categories'),
       supabase.rpc('tx_catalog', { p_q: q.trim() || null, p_cat: cat === 'all' ? null : Number(cat), p_sort: order, p_limit: 200 }),
       supabase.rpc('tx_catalog', { p_sort: 'top', p_limit: 8 }),
+      supabase.rpc('tx_catalog', { p_sort: 'new', p_limit: 8 }),
+      supabase.rpc('tx_catalog', { p_sort: 'growth', p_limit: 8 }),
       supabase.rpc('tx_media')
     ]);
     if (catResult.error) throw catResult.error;
     if (listResult.error) throw listResult.error;
+    if (topResult.error) throw topResult.error;
+    if (newResult.error) throw newResult.error;
+    if (risingResult.error) throw risingResult.error;
     setCategories(catResult.data || []);
     setCommunities(listResult.data || []);
     setTopCommunities(topResult.data || []);
+    setNewCommunities(newResult.data || []);
+    setRisingCommunities(risingResult.data || []);
     const map = {};
     (mediaResult.data || []).forEach((item) => { map[item.id] = item.avatar_path; });
     setMedia(map);
   }, [query, category, sort]);
+
+  const openCatalogWithSort = (nextSort = 'top') => {
+    setQuery('');
+    setCategory('all');
+    setSort(nextSort);
+    setTab('catalog');
+    loadPublic({ query: '', category: 'all', sort: nextSort });
+  };
+
+  const openRating = () => {
+    setQuery('');
+    setCategory('all');
+    setSort(ratingSort);
+    setTab('rating');
+    loadPublic({ query: '', category: 'all', sort: ratingSort });
+  };
 
   const loadMe = useCallback(async () => {
     if (!initData) { setMe(null); return; }
@@ -275,12 +301,13 @@ export default function App() {
   const categoryLabel = (id) => categories.find((x) => Number(x.id) === Number(id))?.title || 'Без категории';
   const avatarUrl = (item) => media[item.id] ? `${CFG.url}/storage/v1/object/public/community-media/${media[item.id]}` : '';
 
-  const CommunityCard = ({ item, compact = false }) => (
+  const CommunityCard = ({ item, compact = false, badge = '' }) => (
     <article className={`community-card ${compact ? 'compact' : ''}`}>
       <button className="community-main" onClick={() => openCommunity(item)}>
         {avatarUrl(item) ? <img className="avatar" src={avatarUrl(item)} alt="" /> : <div className="avatar fallback">{(item.title || '?').slice(0, 1).toUpperCase()}</div>}
         <span className="community-copy">
           <strong>{item.title}</strong>
+          {badge && <span className="community-card-badge">{badge}</span>}
           <small>{item.username ? `@${item.username}` : ''} <i>·</i> {item.category || categoryLabel(item.category_id)}</small>
           {!compact && <span className="community-description">{item.description || 'Описание пока не добавлено.'}</span>}
           <span className="community-meta"><span><ThumbsUp size={13}/>{fmt(item.votes)}</span><span><Flame size={13}/>{fmt(item.growth)} за 7 дней</span></span>
@@ -305,22 +332,66 @@ export default function App() {
 
   const renderHome = () => (
     <>
-      <section className="hero-panel">
-        <div className="hero-glow"/><div className="hero-content">
-          <span className="hero-kicker"><Sparkles size={14}/> ПЛАТФОРМА TELEGRAM-СООБЩЕСТВ</span>
-          <h1>Находи. Развивай.<br/><em>Будь заметнее.</em></h1>
-          <p>Каталог каналов и сообществ Telegram с честным рейтингом и живой аудиторией.</p>
-          <button className="primary-button" onClick={() => setTab('catalog')}>Открыть каталог <ArrowRight size={16}/></button>
+      <section className="hero-panel home-hero-redesign">
+        <div className="hero-glow"/>
+        <div className="hero-content">
+          <span className="hero-kicker"><Sparkles size={14}/> BENDOR-X DISCOVERY</span>
+          <h1>Открой новые<br/><em>сообщества.</em></h1>
+          <p>Свежие Telegram-каналы, активные сообщества и настоящие лидеры — всё в одном месте.</p>
+          <div className="home-hero-actions">
+            <button className="primary-button" onClick={()=>openCatalogWithSort('new')}>Смотреть новинки <ArrowRight size={16}/></button>
+            <button className="home-hero-secondary" onClick={()=>openCatalogWithSort('top')}>Весь каталог</button>
+          </div>
         </div>
-        <div className="hero-art"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="hero-cube"><Grid2X2 size={42}/></div><div className="float-chip chip-top"><Trophy size={15}/> Рейтинг</div><div className="float-chip chip-bottom"><Users size={15}/> Сообщества</div></div>
+        <div className="hero-art"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="hero-cube"><Grid2X2 size={42}/></div><div className="float-chip chip-top"><Sparkles size={15}/> Новинки</div><div className="float-chip chip-bottom"><Trophy size={15}/> Рейтинг</div></div>
       </section>
-      <div className="section-head"><div><div className="eyebrow">НАВИГАЦИЯ</div><h2>Категории</h2></div><button className="text-action" onClick={() => setShowAllHomeCategories((value) => !value)}>{showAllHomeCategories ? 'Свернуть' : 'Все категории'} {showAllHomeCategories ? <ChevronDown size={15}/> : <ArrowRight size={15}/>}</button></div>
-      <div className="category-grid">{(showAllHomeCategories ? categories : categories.slice(0, 4)).map((item, index) => <button className="category-tile" key={item.id} onClick={() => {const next=String(item.id);setCategory(next);setTab('catalog');loadPublic({category:next});}}><span className={`category-symbol tone-${index % 6}`}>{item.icon || '✦'}</span><span><b>{item.title}</b><small>{fmt(item.groups)} сообществ</small></span><ChevronRight size={16}/></button>)}</div>
-      <div className="section-head"><div><div className="eyebrow">ОБЗОР</div><h2>Популярное сейчас</h2></div><button className="text-action" onClick={() => setTab('rating')}>Весь рейтинг <ArrowRight size={15}/></button></div>
-      {topCommunities.length ? <div className="community-list">{topCommunities.slice(0, 5).map((item) => <CommunityCard key={item.id} item={item} compact/>)}</div> : <EmptyState text="Пока нет опубликованных сообществ."/>}
+
+      <div className="section-head home-section-heading">
+        <div><div className="eyebrow">ИССЛЕДУЙ ПО ТЕМАМ</div><h2>Категории</h2></div>
+        <button className="text-action" onClick={()=>openCatalogWithSort('top')}>Все категории <ArrowRight size={15}/></button>
+      </div>
+      <div className="category-grid">
+        {(showAllHomeCategories ? categories : categories.slice(0,4)).map((item,index)=>(
+          <button className="category-tile" key={item.id} onClick={()=>{const next=String(item.id);setQuery('');setCategory(next);setSort('top');setTab('catalog');loadPublic({query:'',category:next,sort:'top'});}}>
+            <span className={`category-symbol tone-${index%6}`}>{item.icon || '✦'}</span>
+            <span><b>{item.title}</b><small>{fmt(item.groups)} сообществ</small></span>
+            <ChevronRight size={16}/>
+          </button>
+        ))}
+      </div>
+      {categories.length>4 && <button className="home-show-categories" onClick={()=>setShowAllHomeCategories(value=>!value)}>{showAllHomeCategories?'Свернуть категории':'Показать все категории'} <ChevronDown size={15}/></button>}
+
+      <section className="home-feed-section">
+        <div className="section-head">
+          <div><div className="eyebrow">ТОЛЬКО ЧТО ОДОБРЕНЫ</div><h2>Свежие сообщества</h2><p className="home-section-note">Новые каналы получают шанс быть замеченными ещё до первых голосов.</p></div>
+          <button className="text-action" onClick={()=>openCatalogWithSort('new')}>Все новинки <ArrowRight size={15}/></button>
+        </div>
+        {newCommunities.length
+          ? <div className="community-list">{newCommunities.slice(0,6).map(item=><CommunityCard key={item.id} item={item} compact badge="Новинка"/>)}</div>
+          : <EmptyState text="Пока нет новых опубликованных сообществ. Загляни чуть позже."/>}
+      </section>
+
+      <section className="home-feed-section">
+        <div className="section-head">
+          <div><div className="eyebrow">ДИНАМИКА ЗА 7 ДНЕЙ</div><h2>Набирают обороты</h2><p className="home-section-note">Сообщества, которые активнее всего растут сейчас.</p></div>
+          <button className="text-action" onClick={()=>openCatalogWithSort('growth')}>Все растущие <ArrowRight size={15}/></button>
+        </div>
+        {risingCommunities.length
+          ? <div className="community-list">{risingCommunities.slice(0,5).map(item=><CommunityCard key={item.id} item={item} compact badge="В тренде"/>)}</div>
+          : <EmptyState text="Пока недостаточно активности для подборки роста."/>}
+      </section>
+
+      <section className="home-feed-section">
+        <div className="section-head">
+          <div><div className="eyebrow">ЛИДЕРЫ ПО ГОЛОСАМ</div><h2>Самые популярные</h2><p className="home-section-note">Органический рейтинг — только реальные голоса пользователей.</p></div>
+          <button className="text-action" onClick={openRating}>Весь рейтинг <ArrowRight size={15}/></button>
+        </div>
+        {topCommunities.length
+          ? <div className="community-list">{topCommunities.slice(0,5).map((item,index)=><CommunityCard key={item.id} item={item} compact badge={index===0?'Лидер':''}/>)}</div>
+          : <EmptyState text="Пока нет опубликованных сообществ."/>}
+      </section>
     </>
   );
-
   const renderCatalog = () => (
     <>
       <PageHeader eyebrow="ИССЛЕДУЙ TELEGRAM" title="Каталог" subtitle="Выбирай интересные каналы, группы и сообщества." action={<button className="icon-button" onClick={() => refresh(true)}><RefreshCw size={17}/></button>}/>
@@ -350,7 +421,7 @@ export default function App() {
   const renderRating = () => (
     <>
       <PageHeader eyebrow="ЧЕСТНЫЙ РЕЙТИНГ" title="Лучшие сообщества" subtitle="Позиции формируются по действительным голосам пользователей. Платные размещения не влияют на рейтинг."/>
-      <div className="segmented"><button className={sort==='top'?'active':''} onClick={()=>{setSort('top');loadPublic({sort:'top'});}}>За всё время</button><button className={sort==='growth'?'active':''} onClick={()=>{setSort('growth');loadPublic({sort:'growth'});}}>За 7 дней</button><button className={sort==='new'?'active':''} onClick={()=>{setSort('new');loadPublic({sort:'new'});}}>Новые</button></div>
+      <div className="segmented rating-segmented"><button className={ratingSort==='top'?'active':''} onClick={()=>{setRatingSort('top');setSort('top');loadPublic({query:'',category:'all',sort:'top'});}}>За всё время</button><button className={ratingSort==='growth'?'active':''} onClick={()=>{setRatingSort('growth');setSort('growth');loadPublic({query:'',category:'all',sort:'growth'});}}>За 7 дней</button></div>
       <div className="ranking-list">{communities.map((item,index)=><article className="ranking-card" key={item.id}>
         <div className={`ranking-place place-${index+1}`}>{index+1}</div>
         {avatarUrl(item) ? <img className="ranking-avatar" src={avatarUrl(item)} alt=""/> : <div className="ranking-avatar fallback">{(item.title||'?').slice(0,1).toUpperCase()}</div>}
@@ -426,7 +497,7 @@ export default function App() {
         {error && <div className="error-banner"><span>{error}</span><button onClick={()=>refresh()}><RefreshCw size={15}/> Повторить</button></div>}
         {loading ? <div className="loading-state"><LoaderCircle className="spin" size={28}/><span>Загружаем Bendor-X…</span></div> : body}
       </main>
-      <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`}>{nav.map(([id,Icon,label])=><button key={id} className={`${tab===id?'active':''} ${id==='add'?'add-nav':''}`} onClick={()=>{setTab(id);setMobileMenu(false);}}><span><Icon size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
+      <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`}>{nav.map(([id,Icon,label])=><button key={id} className={`${tab===id?'active':''} ${id==='add'?'add-nav':''}`} onClick={()=>{if(id==='rating')openRating();else setTab(id);setMobileMenu(false);}}><span><Icon size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
       {toast && <div className="toast-message">{toast}</div>}
       {refreshing && <div className="refresh-indicator"><LoaderCircle className="spin" size={15}/> Обновляем данные</div>}
       {selectedQueueItem && <div className="modal-backdrop queue-detail-backdrop" onClick={()=>setSelectedQueueItem(null)}>

@@ -246,3 +246,33 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
     flex:none;
   }
 }
+
+
+/* Bendor-X discovery homepage */
+.home-hero-redesign .hero-content {max-width:560px}
+.home-hero-redesign .hero-content h1 {max-width:560px}
+.home-hero-actions {display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.home-hero-actions .primary-button {margin-top:0}
+.home-hero-secondary {display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 15px;border:1px solid #ffffff20;border-radius:12px;background:#ffffff08;color:#e2e4eb;font-size:12px;font-weight:700}
+.home-hero-secondary:hover {border-color:#a99fff77;background:#8b7cff16}
+.home-section-heading {margin-top:28px}
+.home-feed-section {margin-top:30px}
+.home-feed-section .section-head {align-items:flex-start;margin:0 0 14px;gap:12px}
+.home-feed-section .section-head>div {min-width:0}
+.home-feed-section .section-head h2 {margin-top:6px}
+.home-section-note {margin:6px 0 0;color:#9198a7;font-size:11px;line-height:1.45;max-width:420px}
+.home-feed-section .text-action {flex:none;margin-top:10px}
+.community-card-badge {width:max-content;max-width:100%;padding:3px 7px;border:1px solid #8b7cff44;border-radius:20px;background:#8b7cff18;color:#c2baff;font-size:9px;font-weight:800;letter-spacing:.2px}
+.home-feed-section .community-card-badge {margin-top:2px}
+.home-show-categories {display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:10px;padding:9px;border:1px solid var(--line);border-radius:11px;background:#191c23;color:#aaa0ff;font-size:11px;font-weight:700}
+@media(max-width:560px) {
+ .home-hero-redesign {min-height:275px;padding:25px 19px}
+ .home-hero-redesign .hero-art {right:-46px;bottom:-37px;opacity:.2}
+ .home-hero-redesign .hero-content h1 {font-size:clamp(31px,8vw,38px)}
+ .home-hero-actions {gap:8px}
+ .home-hero-actions .primary-button,.home-hero-secondary {min-height:40px;padding:10px 11px;font-size:11px}
+ .home-feed-section {margin-top:25px}
+ .home-feed-section .section-head {align-items:flex-start}
+ .home-feed-section .section-head .text-action {font-size:10px}
+ .home-section-note {max-width:280px;font-size:10px}
+}
