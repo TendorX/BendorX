@@ -294,6 +294,32 @@ export default function App() {
   };
 
   const filtered = communities;
+  const recommendedCommunities = useMemo(() => {
+    const freshBoost = new Map(newCommunities.map((item, index) => [Number(item.id), 18 - index]));
+    const unique = new Map();
+    [...risingCommunities, ...topCommunities, ...newCommunities].forEach((item) => {
+      if (!unique.has(Number(item.id))) unique.set(Number(item.id), item);
+    });
+    const candidates = [...unique.values()].map((item) => ({
+      item,
+      score: Number(item.growth || 0) * 3 + Number(item.votes || 0) * 0.35 + (freshBoost.get(Number(item.id)) || 0)
+    })).sort((a, b) => b.score - a.score);
+    const selected = [];
+    const usedCategories = new Set();
+    candidates.forEach(({ item }) => {
+      const cat = String(item.category_id || item.category || 'other');
+      if (!usedCategories.has(cat) && selected.length < 4) {
+        selected.push(item);
+        usedCategories.add(cat);
+      }
+    });
+    if (selected.length < 4) {
+      candidates.forEach(({ item }) => {
+        if (selected.length < 4 && !selected.some((x) => Number(x.id) === Number(item.id))) selected.push(item);
+      });
+    }
+    return selected;
+  }, [newCommunities, risingCommunities, topCommunities]);
   const favCommunities = useMemo(() => communities.filter((x) => favoriteIds.has(Number(x.id))), [communities, favoriteIds]);
   const votedCommunities = useMemo(() => communities.filter((x) => votedIds.has(Number(x.id))), [communities, votedIds]);
   const myCommunities = me?.communities || [];
@@ -369,6 +395,13 @@ export default function App() {
           ? <div className="community-list">{newCommunities.slice(0,6).map(item=><CommunityCard key={item.id} item={item} compact badge="Новинка"/>)}</div>
           : <EmptyState text="Пока нет новых опубликованных сообществ. Загляни чуть позже."/>}
       </section>
+
+      {recommendedCommunities.length > 0 && <section className="home-feed-section">
+        <div className="section-head">
+          <div><div className="eyebrow">АВТОМАТИЧЕСКАЯ ПОДБОРКА</div><h2>Выбор Bendor-X</h2><p className="home-section-note">Разные тематики — сочетание свежести и активности сообществ.</p></div>
+        </div>
+        <div className="community-list">{recommendedCommunities.map(item=><CommunityCard key={item.id} item={item} compact badge="Рекомендуем"/>)}</div>
+      </section>}
 
       <section className="home-feed-section">
         <div className="section-head">
