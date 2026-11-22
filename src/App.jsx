@@ -434,13 +434,13 @@ export default function App() {
     <>
       <PageHeader eyebrow="ТАБЛИЦА ЛИДЕРОВ" title="Рейтинг сообществ" subtitle="Десять лучших по голосам или реальным переходам в Telegram."/>
       <div className="leaderboard-metric-tabs">
-        <button className={leaderboardMetric==='votes'?'active':''} onClick={()=>{setLeaderboardMetric('votes');loadLeaderboard({metric:'votes'}).catch(e=>notify(e.message));}}><ThumbsUp size={16}/> По голосам</button>
-        <button className={leaderboardMetric==='clicks'?'active':''} onClick={()=>{setLeaderboardMetric('clicks');loadLeaderboard({metric:'clicks'}).catch(e=>notify(e.message));}}><ExternalLink size={16}/> По переходам</button>
+        <button className={leaderboardMetric==='votes'?'active':''} onClick={()=>setLeaderboardMetric('votes')}><ThumbsUp size={16}/> По голосам</button>
+        <button className={leaderboardMetric==='clicks'?'active':''} onClick={()=>setLeaderboardMetric('clicks')}><ExternalLink size={16}/> По переходам</button>
       </div>
       <div className="leaderboard-period-tabs">
-        <button className={leaderboardPeriod==='all'?'active':''} onClick={()=>{setLeaderboardPeriod('all');loadLeaderboard({period:'all'}).catch(e=>notify(e.message));}}>За всё время</button>
-        <button className={leaderboardPeriod==='7d'?'active':''} onClick={()=>{setLeaderboardPeriod('7d');loadLeaderboard({period:'7d'}).catch(e=>notify(e.message));}}>7 дней</button>
-        <button className={leaderboardPeriod==='30d'?'active':''} onClick={()=>{setLeaderboardPeriod('30d');loadLeaderboard({period:'30d'}).catch(e=>notify(e.message));}}>30 дней</button>
+        <button className={leaderboardPeriod==='all'?'active':''} onClick={()=>setLeaderboardPeriod('all')}>За всё время</button>
+        <button className={leaderboardPeriod==='7d'?'active':''} onClick={()=>setLeaderboardPeriod('7d')}>7 дней</button>
+        <button className={leaderboardPeriod==='30d'?'active':''} onClick={()=>setLeaderboardPeriod('30d')}>30 дней</button>
       </div>
       <div className="leaderboard-caption">{leaderboardMetric==='votes'?'Места определяются количеством действительных голосов.':'Учитываются нажатия на кнопку перехода в Telegram.'}</div>
       {leaderboardLoading
