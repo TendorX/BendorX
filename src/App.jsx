@@ -62,6 +62,7 @@ export default function App() {
   const [rejectReason, setRejectReason] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [showAllHomeCategories, setShowAllHomeCategories] = useState(false);
 
   const initData = tg?.initData || '';
   const telegramUser = tg?.initDataUnsafe?.user || null;
@@ -300,8 +301,8 @@ export default function App() {
         </div>
         <div className="hero-art"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="hero-cube"><Grid2X2 size={42}/></div><div className="float-chip chip-top"><Trophy size={15}/> Рейтинг</div><div className="float-chip chip-bottom"><Users size={15}/> Сообщества</div></div>
       </section>
-      <div className="section-head"><div><div className="eyebrow">НАВИГАЦИЯ</div><h2>Категории</h2></div><button className="text-action" onClick={() => setTab('catalog')}>Все категории <ArrowRight size={15}/></button></div>
-      <div className="category-grid">{categories.map((item, index) => <button className="category-tile" key={item.id} onClick={() => {const next=String(item.id);setCategory(next);setTab('catalog');loadPublic({category:next});}}><span className={`category-symbol tone-${index % 6}`}>{item.icon || '✦'}</span><span><b>{item.title}</b><small>{fmt(item.groups)} сообществ</small></span><ChevronRight size={16}/></button>)}</div>
+      <div className="section-head"><div><div className="eyebrow">НАВИГАЦИЯ</div><h2>Категории</h2></div><button className="text-action" onClick={() => setShowAllHomeCategories((value) => !value)}>{showAllHomeCategories ? 'Свернуть' : 'Все категории'} {showAllHomeCategories ? <ChevronDown size={15}/> : <ArrowRight size={15}/>}</button></div>
+      <div className="category-grid">{(showAllHomeCategories ? categories : categories.slice(0, 4)).map((item, index) => <button className="category-tile" key={item.id} onClick={() => {const next=String(item.id);setCategory(next);setTab('catalog');loadPublic({category:next});}}><span className={`category-symbol tone-${index % 6}`}>{item.icon || '✦'}</span><span><b>{item.title}</b><small>{fmt(item.groups)} сообществ</small></span><ChevronRight size={16}/></button>)}</div>
       <div className="section-head"><div><div className="eyebrow">ОБЗОР</div><h2>Популярное сейчас</h2></div><button className="text-action" onClick={() => setTab('rating')}>Весь рейтинг <ArrowRight size={15}/></button></div>
       {topCommunities.length ? <div className="community-list">{topCommunities.slice(0, 5).map((item) => <CommunityCard key={item.id} item={item} compact/>)}</div> : <EmptyState text="Пока нет опубликованных сообществ."/>}
     </>
