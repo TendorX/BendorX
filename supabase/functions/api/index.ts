@@ -133,8 +133,8 @@ async function verifyTelegram(
 
   // Telegram Web Apps initData: HMAC(key="WebAppData", message=botToken).
   const secretKey = await hmac(
-    encoder.encode("WebAppData"),
-    botToken,
+    encoder.encode(botToken),
+    "WebAppData",
   );
 
   const calculatedHash = toHex(
@@ -199,6 +199,7 @@ Deno.serve(async (req: Request) => {
 
     // Проверяем оба допустимых имени секрета, не выводя значения секретов в логи.
     const botTokenEntries = [
+      ["BENDORX_BOT_TOKEN", (Deno.env.get("BENDORX_BOT_TOKEN") || "").trim()],
       ["TELEGRAM_BOT_TOKEN", (Deno.env.get("TELEGRAM_BOT_TOKEN") || "").trim()],
       ["TENDORX_BOT_TOKEN", (Deno.env.get("TENDORX_BOT_TOKEN") || "").trim()],
       ["BOT_TOKEN", (Deno.env.get("BOT_TOKEN") || "").trim()],
