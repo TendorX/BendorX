@@ -354,3 +354,25 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .queue-channel-preview-fallback{display:grid;place-items:center;font-size:30px;font-weight:800;color:#b9adff}
 .queue-channel-preview h2{margin:0 0 5px}
 .queue-channel-preview small{color:var(--muted)}
+
+
+/* Bendor-X cinematic startup loader */
+.boot-loader{position:fixed;z-index:100000;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:24px;background:#030308;color:#f4f1ff}
+.boot-loader:before{position:absolute;inset:0;content:"";background:radial-gradient(ellipse at 50% 43%,rgba(92,61,207,.16),transparent 43%)}
+.boot-loader-glow{position:absolute;width:min(78vw,390px);aspect-ratio:1;border-radius:50%;background:rgba(105,69,255,.17);filter:blur(75px);animation:bx-glow 3.2s ease-in-out infinite}
+.boot-loader-head{position:relative;z-index:1;width:min(82vw,390px);max-height:43vh;overflow:visible}
+.boot-eyes{opacity:0;transform:scale(.78);transform-origin:50% 52%;animation:bx-eyes .55s ease-out .12s forwards}
+.boot-draw path,.boot-draw ellipse{stroke-dasharray:900;stroke-dashoffset:900;animation:bx-draw 1.45s cubic-bezier(.5,0,.2,1) .55s forwards}
+.boot-draw ellipse{animation-duration:1.1s}
+.boot-loader-wordmark{position:relative;z-index:1;margin-top:12px;font-size:clamp(35px,9vw,54px);font-weight:900;letter-spacing:-2.8px;line-height:1.05;color:#e9e7f4;text-shadow:0 0 22px rgba(159,139,255,.28);opacity:0;transform:translateY(13px);animation:bx-word .65s ease-out 1.75s forwards}
+.boot-loader-wordmark span{color:#9278ff;text-shadow:0 0 22px #7547ff99}
+.boot-loader-track{position:relative;z-index:1;width:min(58vw,250px);height:3px;margin-top:25px;overflow:hidden;border-radius:10px;background:rgba(255,255,255,.13);opacity:0;animation:bx-word .4s ease-out 1.95s forwards}
+.boot-loader-track span{display:block;width:42%;height:100%;border-radius:10px;background:linear-gradient(90deg,#6d4cff,#d5baff,#8061ff);box-shadow:0 0 12px #956bff;animation:bx-progress 1.15s ease-in-out infinite}
+.boot-loader-caption{position:relative;z-index:1;margin-top:11px;color:#85809e;font-size:9px;font-weight:800;letter-spacing:4px;opacity:0;animation:bx-word .4s ease-out 2s forwards}
+@keyframes bx-eyes{to{opacity:1;transform:scale(1)}}
+@keyframes bx-draw{to{stroke-dashoffset:0}}
+@keyframes bx-word{to{opacity:1;transform:translateY(0)}}
+@keyframes bx-progress{0%{transform:translateX(-115%)}100%{transform:translateX(255%)}}
+@keyframes bx-glow{0%,100%{opacity:.55;transform:scale(.88)}50%{opacity:1;transform:scale(1.08)}}
+@media(max-height:620px){.boot-loader-head{max-height:36vh;width:min(65vw,300px)}.boot-loader-wordmark{font-size:34px;margin-top:2px}.boot-loader-track{margin-top:15px}}
+@media(prefers-reduced-motion:reduce){.boot-loader *{animation-duration:.01ms!important;animation-delay:0ms!important;animation-iteration-count:1!important}}
