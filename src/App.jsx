@@ -49,6 +49,11 @@ export default function App() {
   const [media, setMedia] = useState({});
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loaderMinimumDone, setLoaderMinimumDone] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setLoaderMinimumDone(true), 5000);
+    return () => window.clearTimeout(timer);
+  }, []);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
@@ -524,7 +529,7 @@ export default function App() {
       {searchOpen && <div className="global-search"><Search size={18}/><input autoFocus value={query} onChange={(e)=>setQuery(e.target.value)} onKeyDown={(e)=>{if(e.key==='Enter'){setTab('catalog');loadPublic({query:e.target.value});setSearchOpen(false);}}} placeholder="Найти сообщество…"/><button onClick={()=>setSearchOpen(false)}><X size={17}/></button></div>}
       <main className="main-content">
         {error && <div className="error-banner"><span>{error}</span><button onClick={()=>refresh()}><RefreshCw size={15}/> Повторить</button></div>}
-        {loading ? <BootLoader /> : body}
+        {loading || !loaderMinimumDone ? <BootLoader /> : body}
       </main>
       <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`}>{nav.map(([id,Icon,label])=><button key={id} className={`${tab===id?'active':''} ${id==='add'?'add-nav':''}`} onClick={()=>{if(id==='home')openHome();else if(id==='catalog')openCategories();else setTab(id);setMobileMenu(false);}}><span><Icon size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
       {toast && <div className="toast-message">{toast}</div>}
