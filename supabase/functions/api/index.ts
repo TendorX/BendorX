@@ -494,9 +494,15 @@ Deno.serve(async (req: Request) => {
 
       case "queue": {
         const q = ((await rpc("tx_queue", { p_actor: tid })) ?? []) as Array<{ id: number }>;
-        const m: any = q.length ? await db.from("communities").select("id,avatar_path").in("id", q.map((x) => x.id)) : { data: [] };
-        const mp = new Map((m.data ?? []).map((x: any) => [x.id, x.avatar_path]));
-        data = q.map((x) => ({ ...x, avatar_path: mp.get(x.id) ?? null }));
+        // tx_queue omits the community kind, so enrich queue items from the
+        // communities table. Without this field the UI incorrectly falls back
+        // to "Группа / чат" even for channels.
+        const m: any = q.length ? await db.from("communities").select("id,avatar_path,kind").in("id", q.map((x) => x.id)) : { data: [] };
+        const mp = new Map((m.data ?? []).map((x: any) => [x.id, { avatar_path: x.avatar_path, kind: x.kind }]));
+        data = q.map((x) => {
+          const extra = mp.get(x.id);
+          return { ...x, avatar_path: extra?.avatar_path ?? null, kind: extra?.kind ?? x.kind ?? null };
+        });
         break;
       }
 
