@@ -131,12 +131,10 @@ async function verifyTelegram(
     .map(([key, value]) => `${key}=${value}`)
     .join("\n");
 
-  // Telegram requires HMAC-SHA256(key=botToken, message="WebAppData").
-  // The previous version had these two arguments reversed, which made
-  // every genuine Telegram initData signature fail validation.
+  // Telegram Web Apps initData: HMAC(key="WebAppData", message=botToken).
   const secretKey = await hmac(
-    encoder.encode(botToken),
-    "WebAppData",
+    encoder.encode("WebAppData"),
+    botToken,
   );
 
   const calculatedHash = toHex(
@@ -201,6 +199,7 @@ Deno.serve(async (req: Request) => {
 
     // Проверяем оба допустимых имени секрета, не выводя значения секретов в логи.
     const botTokenEntries = [
+      ["TELEGRAM_BOT_TOKEN", (Deno.env.get("TELEGRAM_BOT_TOKEN") || "").trim()],
       ["TENDORX_BOT_TOKEN", (Deno.env.get("TENDORX_BOT_TOKEN") || "").trim()],
       ["BOT_TOKEN", (Deno.env.get("BOT_TOKEN") || "").trim()],
     ].filter((entry) => entry[1]).filter((entry, index, all) =>
@@ -259,9 +258,32 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!verified) {
+      // Check which Telegram bot each configured token belongs to.
+      // Log only variable names and public bot usernames, never tokens.
+      const tokenChecks = await Promise.all(botTokenEntries.map(async (entry) => {
+        try {
+          const check = await fetch(`https://api.telegram.org/bot${entry[1]}/getMe`);
+          const payload = await check.json();
+          return {
+            secretName: entry[0],
+            validToken: payload?.ok === true,
+            botUsername: payload?.ok === true ? payload.result?.username ?? null : null,
+          };
+        } catch {
+          return { secretName: entry[0], validToken: false, botUsername: null };
+        }
+      }));
+      let incomingUserId: number | null = null;
+      try {
+        const parsedUser = JSON.parse(new URLSearchParams(String(body.initData ?? "")).get("user") ?? "null");
+        if (Number.isSafeInteger(parsedUser?.id) && parsedUser.id > 0) incomingUserId = parsedUser.id;
+      } catch { /* unverified input; diagnostic only */ }
       console.warn("Telegram initData verification failed", {
         initDataLength: String(body.initData ?? "").length,
-        secretNamesTried: botTokenEntries.map((entry) => entry[0]),
+        tokenChecks,
+        incomingUserMatchesStoredMaster: incomingUserId !== null
+          ? incomingUserId === Number(Deno.env.get("MASTER_ADMIN_TID") || 0)
+          : null,
         reason: lastAuthError instanceof Error ? lastAuthError.message : "unknown",
       });
       if (lastAuthError) throw lastAuthError;
