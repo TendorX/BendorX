@@ -299,7 +299,7 @@ export default function App() {
       });
       setAdd({ title: '', link: '', description: '', category: '', kind: 'channel', tags: '' });
       setImageFile(null); setImagePreview('');
-      await reloadEverything(); setTab('profile'); setProfilePage('publications');
+      await reloadEverything(); setTab('profile-publications');
       notify('Заявка отправлена на модерацию');
     } catch (err) { notify(err.message); }
     finally { setSubmitting(false); }
@@ -478,19 +478,37 @@ export default function App() {
         <div className="profile-card"><div className="profile-avatar">{telegramUser?.photo_url ? <img src={telegramUser.photo_url} alt=""/> : (telegramUser?.first_name || 'T').slice(0,1).toUpperCase()}</div><div className="profile-info"><b>{[telegramUser?.first_name,telegramUser?.last_name].filter(Boolean).join(' ') || 'Пользователь Telegram'}</b><span>@{telegramUser?.username || 'telegram_user'}</span><small className="role-pill">{me?.role || 'user'}</small></div><ShieldCheck className="profile-shield" size={21}/></div>
         <div className="metric-grid"><Metric icon={ThumbsUp} value={me?.voted?.length || 0} label="Голосов"/><Metric icon={Bookmark} value={me?.favs?.length || 0} label="Избранное"/><Metric icon={FileText} value={myCommunities.length} label="Публикации"/></div>
         <div className="profile-menu">
-          <button onClick={()=>setProfilePage('publications')}><FileText/><span><b>Мои публикации</b><small>Статус заявок и статистика</small></span><ChevronRight/></button>
-          <button onClick={()=>setProfilePage('votes')}><ThumbsUp/><span><b>Мои голосования</b><small>Сообщества, за которые ты голосовал</small></span><ChevronRight/></button>
-          <button onClick={()=>setProfilePage('favorites')}><Bookmark/><span><b>Избранное</b><small>Сохранённые сообщества</small></span><ChevronRight/></button>
+          <button onClick={()=>setTab('profile-publications')}><FileText/><span><b>Мои публикации</b><small>Статус заявок и статистика</small></span><ChevronRight/></button>
+          <button onClick={()=>setTab('profile-votes')}><ThumbsUp/><span><b>Мои голосования</b><small>Сообщества, за которые ты голосовал</small></span><ChevronRight/></button>
+          <button onClick={()=>setTab('profile-favorites')}><Bookmark/><span><b>Избранное</b><small>Сохранённые сообщества</small></span><ChevronRight/></button>
           <button onClick={()=>setTab('notifications')}><Bell/><span><b>Уведомления</b><small>Отдельная страница уведомлений</small></span><ChevronRight/></button>
           {isStaff && <button onClick={()=>{setTab('admin');loadAdmin().catch(e=>notify(e.message));}}><LayoutDashboard/><span><b>Панель управления</b><small>Отдельная страница модерации</small></span><ChevronRight/></button>}
         </div>
-        {profilePage !== 'main' && <div className="subpage-panel"><div className="subpage-heading"><button className="icon-button" onClick={()=>setProfilePage('main')}><ArrowLeft size={17}/></button><h2>{profilePage==='publications'?'Мои публикации':profilePage==='votes'?'Мои голосования':'Избранное'}</h2></div>
-          {profilePage==='publications' && <div className="my-pubs">{myCommunities.length ? myCommunities.map((item)=><div className="my-pub" key={item.id}><div><b>{item.title}</b><small>@{item.username} · {fmt(item.votes)} голосов</small></div><span className={`status status-${item.status}`}>{STATUS[item.status]?.[0] || item.status}</span></div>) : <EmptyState text="У тебя пока нет публикаций."/>}</div>}
-          {profilePage==='votes' && <div className="community-list">{votedCommunities.length ? votedCommunities.map((item)=><CommunityCard key={item.id} item={item} compact/>) : <EmptyState text="Ты ещё не голосовал за сообщества."/>}</div>}
-          {profilePage==='favorites' && <div className="community-list">{favCommunities.length ? favCommunities.map((item)=><CommunityCard key={item.id} item={item} compact/>) : <EmptyState text="В избранном пока пусто. Сохраняй понравившиеся сообщества закладкой."/>}</div>}
-        </div>}
       </>}
     </>
+  );
+
+  const renderProfileSubpage = (page, title, subtitle, content) => (
+    <>
+      <PageHeader eyebrow="ЛИЧНЫЙ КАБИНЕТ" title={title} subtitle={subtitle}
+        action={<button className="icon-button" aria-label="Назад в профиль" onClick={()=>setTab('profile')}><ArrowLeft size={17}/></button>}/>
+      {!initData ? <TelegramGate/> : content}
+    </>
+  );
+
+  const renderMyPublications = () => renderProfileSubpage(
+    'publications', 'Мои публикации', 'Статус заявок и статистика твоих сообществ.',
+    <div className="my-pubs">{myCommunities.length ? myCommunities.map((item)=><div className="my-pub" key={item.id}><div><b>{item.title}</b><small>@{item.username} · {fmt(item.votes)} голосов</small></div><span className={`status status-${item.status}`}>{STATUS[item.status]?.[0] || item.status}</span></div>) : <EmptyState text="У тебя пока нет публикаций."/>}</div>
+  );
+
+  const renderMyVotes = () => renderProfileSubpage(
+    'votes', 'Мои голосования', 'Сообщества, за которые ты отдавал голос.',
+    <div className="community-list">{votedCommunities.length ? votedCommunities.map((item)=><CommunityCard key={item.id} item={item} compact/>) : <EmptyState text="Ты ещё не голосовал за сообщества."/>}</div>
+  );
+
+  const renderMyFavorites = () => renderProfileSubpage(
+    'favorites', 'Избранное', 'Сохранённые сообщества.',
+    <div className="community-list">{favCommunities.length ? favCommunities.map((item)=><CommunityCard key={item.id} item={item} compact/>) : <EmptyState text="В избранном пока пусто. Сохраняй понравившиеся сообщества закладкой."/>}</div>
   );
 
   const renderNotifications = () => (
@@ -521,7 +539,7 @@ export default function App() {
     </>
   );
 
-  const body = tab === 'home' ? renderHome() : tab === 'catalog' ? renderCatalog() : tab === 'add' ? renderAdd() : tab === 'rating' ? renderRating() : tab === 'notifications' ? renderNotifications() : tab === 'admin' ? renderAdmin() : renderProfile();
+  const body = tab === 'home' ? renderHome() : tab === 'catalog' ? renderCatalog() : tab === 'add' ? renderAdd() : tab === 'rating' ? renderRating() : tab === 'notifications' ? renderNotifications() : tab === 'admin' ? renderAdmin() : tab === 'profile-publications' ? renderMyPublications() : tab === 'profile-votes' ? renderMyVotes() : tab === 'profile-favorites' ? renderMyFavorites() : renderProfile();
 
   return (
     <div className="app-shell">
@@ -531,7 +549,7 @@ export default function App() {
         {error && <div className="error-banner"><span>{error}</span><button onClick={()=>refresh()}><RefreshCw size={15}/> Повторить</button></div>}
         {loading || !loaderMinimumDone ? <BootLoader /> : body}
       </main>
-      <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`}>{nav.map(([id,Icon,label])=><button key={id} className={`${tab===id?'active':''} ${id==='add'?'add-nav':''}`} onClick={()=>{if(id==='home')openHome();else if(id==='catalog')openCategories();else setTab(id);setMobileMenu(false);}}><span><Icon size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
+      <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`}>{nav.map(([id,Icon,label])=><button key={id} className={`${(tab===id || (id==='profile' && tab.startsWith('profile-')))?'active':''} ${id==='add'?'add-nav':''}`} onClick={()=>{if(id==='home')openHome();else if(id==='catalog')openCategories();else if(id==='profile'){setTab('profile');}else setTab(id);setMobileMenu(false);}}><span><Icon size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
       {toast && <div className="toast-message">{toast}</div>}
       {refreshing && <div className="refresh-indicator"><LoaderCircle className="spin" size={15}/> Обновляем данные</div>}
       {promotionOpen && <div className="modal-backdrop" onClick={()=>setPromotionOpen(false)}>
