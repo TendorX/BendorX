@@ -553,7 +553,12 @@ export default function App() {
         <section className="queue-detail-modal" onClick={(e)=>e.stopPropagation()}>
           <button className="modal-close" onClick={()=>setSelectedQueueItem(null)} aria-label="Закрыть"><X size={18}/></button>
           <div className="eyebrow">ЗАЯВКА НА МОДЕРАЦИЮ · №{selectedQueueItem.id}</div>
-          <h2>{selectedQueueItem.title}</h2>
+          <div className="queue-channel-preview">
+            {selectedQueueItem.avatar_path
+              ? <img src={`${CFG.url}/storage/v1/object/public/community-media/${selectedQueueItem.avatar_path}`} alt={`Фотография канала ${selectedQueueItem.title}`} />
+              : <div className="queue-channel-preview-fallback">{(selectedQueueItem.title || '?').slice(0, 1).toUpperCase()}</div>}
+            <div><h2>{selectedQueueItem.title}</h2><small>{selectedQueueItem.username ? '@' + selectedQueueItem.username : 'Telegram-сообщество'}</small></div>
+          </div>
           <span className="status status-pending">На модерации</span>
           <div className="queue-detail-section">
             <h3><FileText size={16}/> Описание</h3>
