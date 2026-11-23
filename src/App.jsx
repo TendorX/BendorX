@@ -51,7 +51,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [loaderMinimumDone, setLoaderMinimumDone] = useState(false);
   useEffect(() => {
-    const timer = window.setTimeout(() => setLoaderMinimumDone(true), 6000);
+    const timer = window.setTimeout(() => setLoaderMinimumDone(true), 7000);
     return () => window.clearTimeout(timer);
   }, []);
   const [refreshing, setRefreshing] = useState(false);
