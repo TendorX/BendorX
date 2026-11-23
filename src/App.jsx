@@ -623,11 +623,6 @@ function BootLoader() {
             <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
         </defs>
-        {/* Eyes ignite first; the head and hood are drawn around them. */}
-        <g className="boot-eyes" filter="url(#bx-eye-glow)">
-          <path d="M145 151 L198 169 L181 187 L154 179 Z" fill="url(#bx-purple)" />
-          <path d="M238 184 L278 171 L266 192 L244 198 Z" fill="url(#bx-purple)" />
-        </g>
         <g className="boot-draw">
           {/* Hood silhouette */}
           <path d="M83 269 C54 231 49 178 68 125 C87 73 133 37 196 29 C263 21 323 56 348 111 C369 157 365 215 340 266"
@@ -651,6 +646,11 @@ function BootLoader() {
           <path d="M128 218 C151 247 178 260 211 264 C245 260 274 245 294 218"
             fill="none" stroke="#77718f" strokeWidth="5" />
           <path d="M171 278 L211 302 L252 278" fill="none" stroke="#8b7cff" strokeWidth="4" strokeLinecap="round" />
+        </g>
+        {/* Eyes stay on the top layer so the face fill can never cover them. */}
+        <g className="boot-eyes" filter="url(#bx-eye-glow)">
+          <path d="M143 158 L194 158 L184 180 L153 180 Z" fill="url(#bx-purple)" />
+          <path d="M277 158 L226 158 L236 180 L267 180 Z" fill="url(#bx-purple)" />
         </g>
       </svg>
       <div className="boot-loader-wordmark">Bendor<span>-X</span></div>
