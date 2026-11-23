@@ -344,3 +344,5 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
  .leaderboard-score{font-size:12px}
  .promotion-modal{width:100%;max-height:calc(100dvh - 26px);padding:22px 16px}
 }
+
+.home-sort-button{border:1px solid var(--line);background:#1b1e25;padding:9px 11px;border-radius:10px;font:inherit;cursor:pointer;transition:.2s}.home-sort-button:hover{border-color:#8b7cff88;color:#c5bdff;background:#8b7cff16}.home-sort-button:focus-visible{outline:2px solid #a99fff;outline-offset:2px}
