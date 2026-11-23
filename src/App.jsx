@@ -71,6 +71,7 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [showAllHomeCategories, setShowAllHomeCategories] = useState(false);
+  const [homeSort, setHomeSort] = useState('votes');
 
   const initData = tg?.initData || '';
   const telegramUser = tg?.initDataUnsafe?.user || null;
@@ -318,6 +319,8 @@ export default function App() {
     catch (err) { notify(err.message); }
   };
 
+  const homeCommunities = useMemo(() => [...communities].sort((a, b) => homeSort === 'alphabet' ? String(a.title || '').localeCompare(String(b.title || ''), 'ru', { sensitivity: 'base' }) : Number(b.votes || 0) - Number(a.votes || 0)), [communities, homeSort]);
+
   const filtered = communities;
   const filteredCategories = useMemo(() => {
     const needle = categoryQuery.trim().toLocaleLowerCase('ru-RU');
@@ -370,11 +373,11 @@ export default function App() {
         <div className="promo-banner-art"><div className="promo-star-orbit"/><Star size={76} fill="currentColor"/></div>
       </section>
       <div className="section-head home-section-heading">
-        <div><div className="eyebrow">ВСЕ ОПУБЛИКОВАННЫЕ СООБЩЕСТВА</div><h2>Все каналы</h2><p className="home-section-note">Сначала сообщества с наибольшим количеством голосов.</p></div>
-        <span className="home-sort-label"><ArrowDownUp size={13}/> По голосам</span>
+        <div><div className="eyebrow">ВСЕ ОПУБЛИКОВАННЫЕ СООБЩЕСТВА</div><h2>Все каналы</h2><p className="home-section-note">{homeSort === 'votes' ? 'Сначала сообщества с наибольшим количеством голосов.' : 'Каналы отсортированы по алфавиту.'}</p></div>
+        <button type="button" className="home-sort-label home-sort-button" onClick={() => setHomeSort(current => current === 'votes' ? 'alphabet' : 'votes')} aria-label={homeSort === 'votes' ? 'Переключить сортировку на алфавит' : 'Переключить сортировку на количество голосов'}><ArrowDownUp size={13}/> {homeSort === 'votes' ? 'По голосам' : 'По алфавиту'}</button>
       </div>
-      {communities.length
-        ? <div className="community-list">{communities.map(item=><CommunityCard key={item.id} item={item}/>)}</div>
+      {homeCommunities.length
+        ? <div className="community-list">{homeCommunities.map(item=><CommunityCard key={item.id} item={item}/>)}</div>
         : <EmptyState text="Пока нет одобренных сообществ. После модерации каналы появятся здесь."/>}
     </>
   );
