@@ -591,4 +591,22 @@ export default function App() {
 
 function EmptyState({ text }) { return <div className="empty-state"><span><Search size={22}/></span><p>{text}</p></div>; }
 function Metric({ icon: Icon, value, label }) { return <div className="metric"><span><Icon size={16}/></span><b>{value}</b><small>{label}</small></div>; }
-function TelegramGate() { return <div className="telegram-gate"><span><LogIn size={25}/></span><h3>Открой Bendor-X в Telegram</h3><p>Для голосования, избранного, публикаций и профиля нужна подтверждённая авторизация Telegram.</p><a href="https://t.me/BendorX_bot" target="_blank" rel="noreferrer">Перейти к боту <ArrowRight size={15}/></a></div>; }
+function TelegramGate() {
+  const webApp = window.Telegram?.WebApp;
+  const hashHasLaunchData = window.location.hash.includes('tgWebAppData');
+  const queryHasLaunchData = new URLSearchParams(window.location.search).has('tgWebAppData');
+  return <div className="telegram-gate">
+    <span><LogIn size={25}/></span><h3>Открой Bendor-X в Telegram</h3>
+    <p>Для голосования, избранного, публикаций и профиля нужна подтверждённая авторизация Telegram.</p>
+    <a href="https://t.me/BendorX_bot" target="_blank" rel="noreferrer">Перейти к боту <ArrowRight size={15}/></a>
+    <div style={{marginTop:16,padding:12,borderRadius:10,background:'rgba(255,255,255,.05)',textAlign:'left',fontSize:12,lineHeight:1.8}}>
+      <b>Диагностика запуска (без личных данных)</b><br/>
+      Telegram SDK: {window.Telegram ? 'подключён' : 'не найден'}<br/>
+      WebApp: {webApp ? 'доступен' : 'не найден'}<br/>
+      initData: {webApp?.initData ? 'получен' : 'пустой'} (длина: {webApp?.initData?.length || 0})<br/>
+      Данные пользователя: {webApp?.initDataUnsafe?.user ? 'получены' : 'не получены'}<br/>
+      Параметры запуска в адресе: {hashHasLaunchData || queryHasLaunchData ? 'есть' : 'не обнаружены'}<br/>
+      Платформа: {webApp?.platform || 'не определена'} · Версия: {webApp?.version || 'не определена'}
+    </div>
+  </div>;
+}
