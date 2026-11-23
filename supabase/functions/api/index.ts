@@ -131,9 +131,12 @@ async function verifyTelegram(
     .map(([key, value]) => `${key}=${value}`)
     .join("\n");
 
+  // Telegram requires HMAC-SHA256(key=botToken, message="WebAppData").
+  // The previous version had these two arguments reversed, which made
+  // every genuine Telegram initData signature fail validation.
   const secretKey = await hmac(
-    encoder.encode("WebAppData"),
-    botToken,
+    encoder.encode(botToken),
+    "WebAppData",
   );
 
   const calculatedHash = toHex(
@@ -196,12 +199,14 @@ Deno.serve(async (req: Request) => {
       throw new ApiError(405, "Method not allowed");
     }
 
-    // Проверяем оба допустимых имени секрета. Если старый секрет
-    // TENDORX_BOT_TOKEN остался от прежнего бота, пробуем BOT_TOKEN.
-    const botTokens = Array.from(new Set([
-      Deno.env.get("TENDORX_BOT_TOKEN"),
-      Deno.env.get("BOT_TOKEN"),
-    ].map((value) => (value || "").trim()).filter(Boolean)));
+    // Проверяем оба допустимых имени секрета, не выводя значения секретов в логи.
+    const botTokenEntries = [
+      ["TENDORX_BOT_TOKEN", (Deno.env.get("TENDORX_BOT_TOKEN") || "").trim()],
+      ["BOT_TOKEN", (Deno.env.get("BOT_TOKEN") || "").trim()],
+    ].filter((entry) => entry[1]).filter((entry, index, all) =>
+      all.findIndex((candidate) => candidate[1] === entry[1]) === index
+    );
+    const botTokens = botTokenEntries.map((entry) => entry[1]);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -254,6 +259,11 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!verified) {
+      console.warn("Telegram initData verification failed", {
+        initDataLength: String(body.initData ?? "").length,
+        secretNamesTried: botTokenEntries.map((entry) => entry[0]),
+        reason: lastAuthError instanceof Error ? lastAuthError.message : "unknown",
+      });
       if (lastAuthError) throw lastAuthError;
       throw new ApiError(500, "Ошибка конфигурации сервера");
     }
