@@ -3,13 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="refresh" content="0; url=/BendorX/web/app.html" />
     <title>Bendor-X</title>
     <script>
-      window.location.replace('/BendorX/web/app.html');
+      // Preserve Telegram Web App launch parameters (including initData in the hash).
+      const target = '/BendorX/web/app.html' + window.location.search + window.location.hash;
+      window.location.replace(target);
     </script>
   </head>
   <body>
-    <p>Открываем Bendor-X… <a href="/BendorX/web/app.html">Нажмите здесь, если переход не сработал.</a></p>
+    <p>Открываем Bendor-X… <a id="app-link" href="/BendorX/web/app.html">Нажмите здесь, если переход не сработал.</a></p>
+    <script>
+      document.getElementById('app-link').href = target;
+    </script>
   </body>
 </html>
