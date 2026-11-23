@@ -375,3 +375,11 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 @keyframes bx-progress{0%{transform:translateX(-115%)}100%{transform:translateX(255%)}}
 @media(max-height:620px){.boot-loader-head{max-height:36vh;width:min(65vw,300px)}.boot-loader-wordmark{font-size:34px;margin-top:2px}.boot-loader-track{margin-top:15px}}
 @media(prefers-reduced-motion:reduce){.boot-loader *{animation-duration:.01ms!important;animation-delay:0ms!important;animation-iteration-count:1!important}}
+
+
+/* Keep the header brand on one line and match the hyphen to Bendor. */
+.brand-name{display:block!important;white-space:nowrap;line-height:1}
+.brand-name .brand-suffix{display:inline-flex;flex-direction:row;white-space:nowrap}
+.brand-name .brand-hyphen{color:#fff!important}
+.brand-name .brand-x{color:var(--purple)!important}
+.brand-name small{display:block}
