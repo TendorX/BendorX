@@ -346,3 +346,11 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 }
 
 .home-sort-button{border:1px solid var(--line);background:#1b1e25;padding:9px 11px;border-radius:10px;font:inherit;cursor:pointer;transition:.2s}.home-sort-button:hover{border-color:#8b7cff88;color:#c5bdff;background:#8b7cff16}.home-sort-button:focus-visible{outline:2px solid #a99fff;outline-offset:2px}
+
+
+/* Preview of the submitted community image in moderation details */
+.queue-channel-preview{display:flex;align-items:center;gap:14px;margin:14px 0 18px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#171a21}
+.queue-channel-preview img,.queue-channel-preview-fallback{width:76px;height:76px;flex:0 0 76px;border-radius:16px;object-fit:cover;background:#262a35}
+.queue-channel-preview-fallback{display:grid;place-items:center;font-size:30px;font-weight:800;color:#b9adff}
+.queue-channel-preview h2{margin:0 0 5px}
+.queue-channel-preview small{color:var(--muted)}
