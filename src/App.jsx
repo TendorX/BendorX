@@ -524,7 +524,7 @@ export default function App() {
       {searchOpen && <div className="global-search"><Search size={18}/><input autoFocus value={query} onChange={(e)=>setQuery(e.target.value)} onKeyDown={(e)=>{if(e.key==='Enter'){setTab('catalog');loadPublic({query:e.target.value});setSearchOpen(false);}}} placeholder="Найти сообщество…"/><button onClick={()=>setSearchOpen(false)}><X size={17}/></button></div>}
       <main className="main-content">
         {error && <div className="error-banner"><span>{error}</span><button onClick={()=>refresh()}><RefreshCw size={15}/> Повторить</button></div>}
-        {loading ? <div className="loading-state"><LoaderCircle className="spin" size={28}/><span>Загружаем Bendor-X…</span></div> : body}
+        {loading ? <BootLoader /> : body}
       </main>
       <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`}>{nav.map(([id,Icon,label])=><button key={id} className={`${tab===id?'active':''} ${id==='add'?'add-nav':''}`} onClick={()=>{if(id==='home')openHome();else if(id==='catalog')openCategories();else setTab(id);setMobileMenu(false);}}><span><Icon size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
       {toast && <div className="toast-message">{toast}</div>}
@@ -593,6 +593,64 @@ export default function App() {
       {details && <div className="modal-backdrop" onClick={()=>setDetails(null)}><section className="detail-modal" onClick={(e)=>e.stopPropagation()}><button className="modal-close" onClick={()=>setDetails(null)}><X size={18}/></button><div className="detail-avatar">{avatarUrl(details)?<img src={avatarUrl(details)} alt=""/>:(details.title||'?').slice(0,1)}</div><div className="eyebrow">{details.category || categoryLabel(details.category_id)}</div><h2>{details.title}</h2><p className="detail-username">@{details.username}</p><p>{details.description || 'Описание не добавлено.'}</p><div className="detail-stats"><Metric icon={Trophy} value={fmt(details.rank)} label="Место"/><Metric icon={ThumbsUp} value={fmt(details.votes)} label="Голоса"/><Metric icon={Flame} value={`+${fmt(details.growth)}`} label="За неделю"/></div><div className="detail-actions"><button className="primary-button" onClick={()=>changeVote(details.id)}>{votedIds.has(Number(details.id))?'Отменить голос':'Проголосовать'}</button><button className="secondary-button" onClick={()=>openCommunityTelegram(details)}>Открыть в Telegram <ExternalLink size={15}/></button></div></section></div>}
       {rejecting && <div className="modal-backdrop" onClick={()=>setRejecting(null)}><section className="confirm-modal" onClick={(e)=>e.stopPropagation()}><button className="modal-close" onClick={()=>setRejecting(null)}><X size={18}/></button><h2>Отклонить публикацию</h2><p>{rejecting.title}</p><label>Причина (минимум 3 символа)</label><textarea rows={3} value={rejectReason} onChange={(e)=>setRejectReason(e.target.value)} placeholder="Укажи причину отказа"/><button className="reject-button full" disabled={rejectReason.trim().length<3} onClick={()=>moderate(rejecting,'rejected',rejectReason)}>Подтвердить отклонение</button></section></div>}
       <footer className="footer-note">Bendor-X · Каталог Telegram-сообществ</footer>
+    </div>
+  );
+}
+
+
+function BootLoader() {
+  return (
+    <div className="boot-loader" role="status" aria-label="Загрузка Bendor-X">
+      <div className="boot-loader-glow" />
+      <svg className="boot-loader-head" viewBox="0 0 420 340" aria-hidden="true">
+        <defs>
+          <linearGradient id="bx-metal" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#f0edff" />
+            <stop offset=".42" stopColor="#77718f" />
+            <stop offset="1" stopColor="#242235" />
+          </linearGradient>
+          <linearGradient id="bx-purple" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#e1baff" />
+            <stop offset="1" stopColor="#7547ff" />
+          </linearGradient>
+          <filter id="bx-eye-glow" x="-150%" y="-150%" width="400%" height="400%">
+            <feGaussianBlur stdDeviation="8" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
+        {/* Eyes ignite first; the head and hood are drawn around them. */}
+        <g className="boot-eyes" filter="url(#bx-eye-glow)">
+          <path d="M145 151 L198 169 L181 187 L154 179 Z" fill="url(#bx-purple)" />
+          <path d="M238 184 L278 171 L266 192 L244 198 Z" fill="url(#bx-purple)" />
+        </g>
+        <g className="boot-draw">
+          {/* Hood silhouette */}
+          <path d="M83 269 C54 231 49 178 68 125 C87 73 133 37 196 29 C263 21 323 56 348 111 C369 157 365 215 340 266"
+            fill="none" stroke="url(#bx-metal)" strokeWidth="13" strokeLinecap="round" />
+          <path d="M99 267 C80 224 78 177 94 132 C111 84 151 58 202 54 C254 51 300 78 322 122"
+            fill="none" stroke="#8f83ff" strokeOpacity=".7" strokeWidth="3" />
+          {/* Headphones */}
+          <path d="M72 135 C48 139 35 160 38 190 L45 222 C49 242 66 253 85 247 L99 241 L91 126 Z"
+            fill="#171622" stroke="url(#bx-metal)" strokeWidth="8" />
+          <ellipse cx="58" cy="190" rx="23" ry="39" fill="#211e35" stroke="#9c8cff" strokeWidth="5" />
+          <ellipse cx="58" cy="190" rx="13" ry="27" fill="none" stroke="#6551d7" strokeWidth="3" />
+          <path d="M344 132 C370 137 384 158 381 190 L374 221 C370 241 353 252 334 246 L321 240 L329 126 Z"
+            fill="#171622" stroke="url(#bx-metal)" strokeWidth="8" />
+          <ellipse cx="362" cy="190" rx="23" ry="39" fill="#211e35" stroke="#9c8cff" strokeWidth="5" />
+          <ellipse cx="362" cy="190" rx="13" ry="27" fill="none" stroke="#6551d7" strokeWidth="3" />
+          {/* Face frame and mask */}
+          <path d="M105 118 C127 83 166 69 211 70 C258 71 294 91 316 126 L303 221 C295 260 260 285 211 291 C163 286 127 261 117 222 Z"
+            fill="#11121b" stroke="url(#bx-metal)" strokeWidth="8" />
+          <path d="M119 129 C148 104 178 95 211 96 C245 96 277 108 300 132"
+            fill="none" stroke="#6f61bd" strokeWidth="4" />
+          <path d="M128 218 C151 247 178 260 211 264 C245 260 274 245 294 218"
+            fill="none" stroke="#77718f" strokeWidth="5" />
+          <path d="M171 278 L211 302 L252 278" fill="none" stroke="#8b7cff" strokeWidth="4" strokeLinecap="round" />
+        </g>
+      </svg>
+      <div className="boot-loader-wordmark">Bendor<span>-X</span></div>
+      <div className="boot-loader-track"><span /></div>
+      <div className="boot-loader-caption">ЗАГРУЗКА</div>
     </div>
   );
 }
