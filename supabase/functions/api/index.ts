@@ -133,8 +133,8 @@ async function verifyTelegram(
 
   // Telegram Web Apps initData: HMAC(key="WebAppData", message=botToken).
   const secretKey = await hmac(
-    encoder.encode(botToken),
-    "WebAppData",
+    encoder.encode("WebAppData"),
+    botToken,
   );
 
   const calculatedHash = toHex(
