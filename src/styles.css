@@ -667,451 +667,54 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 
 /* Custom community card designs */
 .community-card{position:relative;isolation:isolate;overflow:hidden;}
-.community-card.card-theme-violet,.card-live-preview.card-theme-violet{background:linear-gradient(125deg,#30245f 0%,#44347f 48%,#7655d9 100%);}
-.community-card.card-theme-ocean,.card-live-preview.card-theme-ocean{background:linear-gradient(125deg,#123b59 0%,#155c78 48%,#1689a8 100%);}
-.community-card.card-theme-sunset,.card-live-preview.card-theme-sunset{background:linear-gradient(125deg,#642b42 0%,#98434d 48%,#d66b54 100%);}
-.community-card.card-theme-emerald,.card-live-preview.card-theme-emerald{background:linear-gradient(125deg,#124c43 0%,#176b58 48%,#229b76 100%);}
-.community-card.card-theme-ruby,.card-live-preview.card-theme-ruby{background:linear-gradient(125deg,#5c2037 0%,#8d304d 48%,#bd4564 100%);}
-.community-card.card-theme-gold,.card-live-preview.card-theme-gold{background:linear-gradient(125deg,#59421e 0%,#8d6729 48%,#bd8a36 100%);}
-.community-card.card-theme-blue,.card-live-preview.card-theme-blue{background:linear-gradient(125deg,#1c3268 0%,#304e9b 48%,#456ed0 100%);}
-.community-card.card-theme-midnight,.card-live-preview.card-theme-midnight{background:linear-gradient(125deg,#252b42 0%,#39435f 48%,#59627e 100%);}
+.community-card.card-theme-violet,.card-live-preview.card-theme-violet{background:linear-gradient(125deg,#38206f 0%,#5934a8 48%,#895cff 100%);}
+.community-card.card-theme-ocean,.card-live-preview.card-theme-ocean{background:linear-gradient(125deg,#06466a 0%,#087ca0 48%,#18b9d0 100%);}
+.community-card.card-theme-sunset,.card-live-preview.card-theme-sunset{background:linear-gradient(125deg,#76233e 0%,#b93d50 48%,#f07850 100%);}
+.community-card.card-theme-emerald,.card-live-preview.card-theme-emerald{background:linear-gradient(125deg,#075b45 0%,#138968 48%,#29c58a 100%);}
+.community-card.card-theme-ruby,.card-live-preview.card-theme-ruby{background:linear-gradient(125deg,#741b3d 0%,#b52d59 48%,#ed4d78 100%);}
+.community-card.card-theme-gold,.card-live-preview.card-theme-gold{background:linear-gradient(125deg,#67400b 0%,#a66b12 48%,#e0a52b 100%);}
+.community-card.card-theme-blue,.card-live-preview.card-theme-blue{background:linear-gradient(125deg,#183c83 0%,#315fc1 48%,#548cff 100%);}
+.community-card.card-theme-midnight,.card-live-preview.card-theme-midnight{background:linear-gradient(125deg,#252b4d 0%,#414d75 48%,#6879a8 100%);}
 .community-card[class*="card-theme-"] .community-main,.community-card[class*="card-theme-"] .community-actions{position:relative;z-index:1;}
 .community-card[class*="card-theme-"] .community-main{background:transparent;color:#fff;}
-.community-card[class*="card-theme-"] .community-copy>small,.community-card[class*="card-theme-"] .community-description,.community-card[class*="card-theme-"] .community-meta{color:#ffffffed;}
+.community-card[class*="card-theme-"] .community-copy>small,.community-card[class*="card-theme-"] .community-description,.community-card[class*="card-theme-"] .community-meta{color:#ffffffd6;}
 .community-card[class*="card-theme-"] .avatar.fallback{background:#ffffff24;color:#fff;}
-
-/* Bright, full-colour emoji layer: the gradient stays behind, emojis sit clearly above it. */
-.card-emoji-pattern{
-  position:absolute;
-  z-index:0;
-  inset:-8px;
-  display:grid;
-  grid-template-columns:repeat(7,minmax(0,1fr));
-  grid-auto-rows:34px;
-  align-content:center;
-  justify-items:center;
-  align-items:center;
-  gap:2px 4px;
-  overflow:hidden;
-  opacity:.88;
-  pointer-events:none;
-  transform:rotate(-9deg) scale(1.13);
-}
-.card-emoji-pattern span{
-  display:block;
-  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
-  font-size:24px;
-  line-height:1;
-  font-weight:400;
-  filter:none;
-  opacity:.96;
-  text-shadow:0 2px 5px rgba(0,0,0,.32),0 0 9px rgba(255,255,255,.16);
-}
-.card-emoji-pattern span:nth-child(3n){transform:rotate(-13deg) translateY(3px) scale(1.08);}
-.card-emoji-pattern span:nth-child(3n + 1){transform:rotate(11deg) translateY(-2px);}
-.card-emoji-pattern span:nth-child(5n){transform:rotate(18deg) scale(.92);}
-.card-emoji-pattern span:nth-child(7n){transform:translateY(5px) scale(1.12);}
-
 .card-theme-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:8px 0 18px;}
 .card-theme-option{display:flex;align-items:center;gap:9px;min-height:52px;padding:8px 10px;border:1px solid #ffffff18;border-radius:12px;background:#13161c;color:#dce0e9;text-align:left;font-size:11px;}
 .card-theme-option.chosen{border-color:#b5a5ff;background:#8b7cff22;box-shadow:0 0 0 1px #8b7cff35;}
 .card-theme-swatch{width:35px;height:28px;flex:none;border-radius:8px;background:linear-gradient(125deg,var(--swatch-a),var(--swatch-b));}
 .card-theme-option.card-theme-violet{--swatch-a:#30245f;--swatch-b:#7655d9}.card-theme-option.card-theme-ocean{--swatch-a:#123b59;--swatch-b:#1689a8}.card-theme-option.card-theme-sunset{--swatch-a:#642b42;--swatch-b:#d66b54}.card-theme-option.card-theme-emerald{--swatch-a:#124c43;--swatch-b:#229b76}.card-theme-option.card-theme-ruby{--swatch-a:#5c2037;--swatch-b:#bd4564}.card-theme-option.card-theme-gold{--swatch-a:#59421e;--swatch-b:#bd8a36}.card-theme-option.card-theme-blue{--swatch-a:#1c3268;--swatch-b:#456ed0}.card-theme-option.card-theme-midnight{--swatch-a:#252b42;--swatch-b:#59627e}
 .card-theme-option svg{margin-left:auto;color:#c7bcff;}
-.card-emoji-picker{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px;margin:8px 0 18px;}
-.card-emoji-picker button{aspect-ratio:1;min-width:0;border:1px solid #ffffff12;border-radius:10px;background:#13161c;font-size:20px;}
-.card-emoji-picker button.chosen{border-color:#b5a5ff;background:#8b7cff2c;box-shadow:0 0 0 1px #8b7cff45;}
 .card-live-preview{position:relative;isolation:isolate;overflow:hidden;min-height:145px;margin:10px 0 20px;padding:17px;border:1px solid #ffffff2a;border-radius:16px;color:#fff;}
-.card-preview-content{position:relative;z-index:1;display:flex;flex-direction:column;gap:7px;max-width:80%;text-shadow:0 1px 5px rgba(0,0,0,.24);}
-.card-preview-content small{font-size:9px;letter-spacing:1px;color:#ffffffed;}
+.card-preview-content{position:relative;z-index:1;display:flex;flex-direction:column;gap:7px;max-width:80%;}
+.card-preview-content small{font-size:9px;letter-spacing:1px;color:#ffffffb8;}
 .card-preview-content b{font-size:16px;}
-.card-preview-content span{font-size:11px;line-height:1.45;color:#ffffffed;}
-.card-preview-content em{font-size:10px;font-style:normal;color:#ffffffed;}
-@media(max-width:420px){.card-emoji-picker{grid-template-columns:repeat(8,minmax(0,1fr));}.card-theme-picker{gap:7px}.card-theme-option{font-size:10px;padding:7px;}.card-emoji-pattern{grid-auto-rows:31px}.card-emoji-pattern span{font-size:22px;}}
+.card-preview-content span{font-size:11px;line-height:1.45;color:#ffffffd6;}
+@media(max-width:420px){.card-theme-picker{gap:7px}.card-theme-option{font-size:10px;padding:7px;}}
 
-/* Contrast pass for custom community cards: readable copy and unmistakable actions. */
-.community-card[class*="card-theme-"] .community-main{
-  position:relative;
-  z-index:2;
-  border-radius:15px 15px 0 0;
-  text-shadow:0 2px 5px rgba(0,0,0,.72);
+
+/* Simple tactile card controls: white idle state, yellow favourite, red voted state. */
+.community-card[class*="card-theme-"] .community-actions .favorite-button{
+ display:grid;place-items:center;width:39px;height:39px;min-width:39px;padding:0;
+ border:1px solid #fff;border-radius:12px;background:linear-gradient(180deg,#fff 0%,#e8edf5 100%);
+ color:#343b4b;box-shadow:0 3px 0 #aeb7c6,0 5px 10px rgba(0,0,0,.22);
 }
-.community-card[class*="card-theme-"] .community-copy{
-  position:relative;
-  min-width:0;
-  padding:8px 10px;
-  border:1px solid rgba(255,255,255,.16);
-  border-radius:12px;
-  background:linear-gradient(110deg,rgba(8,11,20,.78),rgba(8,11,20,.57));
-  box-shadow:0 4px 16px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.08);
-  -webkit-backdrop-filter:blur(3px);
-  backdrop-filter:blur(3px);
-}
-.community-card[class*="card-theme-"] .community-copy>strong{
-  display:block;
-  color:#fff !important;
-  font-size:15px;
-  font-weight:900;
-  line-height:1.25;
-  letter-spacing:.1px;
-  text-shadow:0 2px 4px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.35);
-}
-.community-card[class*="card-theme-"] .community-copy>small{
-  display:block;
-  margin-top:4px;
-  color:#e7f2ff !important;
-  font-size:11px;
-  font-weight:800;
-  text-shadow:0 1px 4px #000;
-}
-.community-card[class*="card-theme-"] .community-copy>small i{color:#b8c6da;}
-.community-card[class*="card-theme-"] .community-description{
-  display:block;
-  margin-top:6px;
-  color:#fff !important;
-  font-size:11px;
-  font-weight:600;
-  line-height:1.4;
-  text-shadow:0 1px 4px #000;
-}
-.community-card[class*="card-theme-"] .community-meta{
-  color:#fff !important;
-  font-weight:800;
-  text-shadow:0 1px 4px #000;
-}
-.community-card[class*="card-theme-"] .community-meta span{
-  color:#fff !important;
-}
-.community-card[class*="card-theme-"] .community-actions{
-  position:relative;
-  z-index:3;
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:9px;
-  padding:10px 12px;
-  border-top:1px solid rgba(255,255,255,.2);
-  background:linear-gradient(90deg,rgba(5,8,16,.78),rgba(5,8,16,.68));
+.community-card[class*="card-theme-"] .community-actions .favorite-button svg{color:inherit;stroke-width:2.4}
+.community-card[class*="card-theme-"] .community-actions .favorite-button.favorite-selected{
+ border-color:#ffe58a;background:linear-gradient(180deg,#fff0a8,#ffd044 58%,#f3b51d);
+ color:#513700;box-shadow:0 3px 0 #b17b12,0 5px 10px rgba(0,0,0,.22);
 }
 .community-card[class*="card-theme-"] .community-actions .vote-button{
-  min-height:38px;
-  padding:9px 17px;
-  border:1px solid rgba(255,255,255,.72) !important;
-  border-radius:12px;
-  background:linear-gradient(135deg,#fff08a 0%,#ffd23f 52%,#f4a900 100%) !important;
-  color:#241b06 !important;
-  font-size:12px;
-  font-weight:900;
-  text-shadow:none !important;
-  box-shadow:0 4px 14px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.8);
+ min-height:39px;padding:0 16px;border:1px solid #fff;border-radius:12px;
+ background:linear-gradient(180deg,#fff 0%,#e8edf5 100%);color:#303746;font-size:12px;font-weight:800;
+ box-shadow:0 3px 0 #aeb7c6,0 5px 10px rgba(0,0,0,.22);
 }
-.community-card[class*="card-theme-"] .community-actions .vote-button svg{
-  color:#382600 !important;
-}
+.community-card[class*="card-theme-"] .community-actions .vote-button svg{color:inherit}
 .community-card[class*="card-theme-"] .community-actions .vote-button.voted{
-  border-color:#baf5db !important;
-  background:linear-gradient(135deg,#c5ffe1,#51d69a) !important;
-  color:#073b27 !important;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button{
-  display:grid;
-  place-items:center;
-  width:39px;
-  height:38px;
-  min-width:39px;
-  padding:0;
-  border:1px solid rgba(255,255,255,.8) !important;
-  border-radius:12px;
-  background:linear-gradient(145deg,#fff 0%,#e8edff 100%) !important;
-  color:#4b3b9c !important;
-  box-shadow:0 4px 13px rgba(0,0,0,.3),inset 0 1px 0 #fff;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button svg{
-  color:#4b3b9c !important;
-  stroke-width:2.5;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button.favorite-selected{
-  border-color:#fff0a3 !important;
-  background:linear-gradient(145deg,#fff2a6,#ffc928 72%,#f0a900) !important;
-  color:#382700 !important;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button.favorite-selected svg{
-  color:#382700 !important;
-  fill:#ffe17a;
-}
-@media(max-width:420px){
-  .community-card[class*="card-theme-"] .community-copy{padding:7px 8px;}
-  .community-card[class*="card-theme-"] .community-copy>strong{font-size:14px;}
-  .community-card[class*="card-theme-"] .community-actions{padding:9px 10px;}
-  .community-card[class*="card-theme-"] .community-actions .vote-button{min-height:36px;padding:8px 14px;}
-}
-
-
-
-/* Premium card refinement: remove oversized glass panels and soften the visual hierarchy. */
-.community-card[class*="card-theme-"]{
-  border:1px solid rgba(255,255,255,.13) !important;
-  box-shadow:0 8px 24px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.08) !important;
-}
-.community-card[class*="card-theme-"]::after{
-  content:"";
-  position:absolute;
-  z-index:0;
-  inset:0;
-  border-radius:inherit;
-  background:linear-gradient(100deg,rgba(5,8,18,.32) 0%,rgba(5,8,18,.13) 58%,rgba(5,8,18,.04) 100%);
-  pointer-events:none;
-}
-.community-card[class*="card-theme-"] .card-emoji-pattern{
-  opacity:.22 !important;
-  transform:rotate(-8deg) scale(1.08);
-}
-.community-card[class*="card-theme-"] .card-emoji-pattern span{
-  opacity:.82 !important;
-  font-size:22px;
-  text-shadow:0 1px 3px rgba(0,0,0,.18) !important;
-}
-.community-card[class*="card-theme-"] .community-main{
-  z-index:1;
-  text-shadow:0 1px 3px rgba(0,0,0,.42) !important;
-}
-.community-card[class*="card-theme-"] .community-copy{
-  padding:0 !important;
-  border:0 !important;
-  border-radius:0 !important;
-  background:transparent !important;
-  box-shadow:none !important;
-  -webkit-backdrop-filter:none !important;
-  backdrop-filter:none !important;
-}
-.community-card[class*="card-theme-"] .community-copy>strong{
-  color:#fff !important;
-  font-size:15px;
-  font-weight:800 !important;
-  letter-spacing:-.15px;
-  text-shadow:0 1px 3px rgba(0,0,0,.52) !important;
-}
-.community-card[class*="card-theme-"] .community-copy>small{
-  color:rgba(255,255,255,.82) !important;
-  font-weight:600 !important;
-  text-shadow:0 1px 3px rgba(0,0,0,.48) !important;
-}
-.community-card[class*="card-theme-"] .community-description{
-  color:rgba(255,255,255,.88) !important;
-  font-weight:500 !important;
-  text-shadow:0 1px 3px rgba(0,0,0,.48) !important;
-}
-.community-card[class*="card-theme-"] .community-meta span{
-  color:rgba(255,255,255,.86) !important;
-  font-weight:600 !important;
-  text-shadow:0 1px 3px rgba(0,0,0,.48) !important;
-}
-.community-card[class*="card-theme-"] .community-meta svg{
-  color:rgba(255,255,255,.86) !important;
-}
-.community-card[class*="card-theme-"] .community-actions{
-  z-index:1;
-  padding:0 !important;
-  border:0 !important;
-  background:transparent !important;
-  gap:7px !important;
-}
-.community-card[class*="card-theme-"] .community-actions .vote-button{
-  min-height:34px !important;
-  padding:7px 13px !important;
-  border:1px solid rgba(255,231,170,.62) !important;
-  border-radius:10px !important;
-  background:rgba(255,220,135,.16) !important;
-  color:#fff1c9 !important;
-  font-size:11px !important;
-  font-weight:700 !important;
-  box-shadow:0 2px 8px rgba(0,0,0,.12) !important;
-  text-shadow:0 1px 2px rgba(0,0,0,.3) !important;
-}
-.community-card[class*="card-theme-"] .community-actions .vote-button svg{
-  color:#ffe3a0 !important;
-}
-.community-card[class*="card-theme-"] .community-actions .vote-button.voted{
-  border-color:rgba(164,239,205,.62) !important;
-  background:rgba(89,205,151,.2) !important;
-  color:#d8ffeb !important;
-}
-.community-card[class*="card-theme-"] .community-actions .vote-button.voted svg{
-  color:#d8ffeb !important;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button{
-  width:34px !important;
-  height:34px !important;
-  min-width:34px !important;
-  border:1px solid rgba(255,255,255,.36) !important;
-  border-radius:10px !important;
-  background:rgba(12,16,27,.2) !important;
-  color:rgba(255,255,255,.92) !important;
-  box-shadow:none !important;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button svg{
-  color:rgba(255,255,255,.92) !important;
-  stroke-width:2 !important;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button.favorite-selected{
-  border-color:rgba(255,224,137,.78) !important;
-  background:rgba(255,208,91,.22) !important;
-  color:#ffe7a4 !important;
-  box-shadow:none !important;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button.favorite-selected svg{
-  color:#ffe7a4 !important;
-  fill:rgba(255,224,137,.3) !important;
+ border-color:#ffb4bc;background:linear-gradient(180deg,#ff9aa5 0%,#f04458 58%,#cf243b 100%);
+ color:#fff;box-shadow:0 3px 0 #97182b,0 5px 10px rgba(0,0,0,.24);
 }
 @media(max-width:560px){
-  .community-card[class*="card-theme-"] .community-copy{padding:0 !important;}
-  .community-card[class*="card-theme-"] .community-actions{padding:0 !important;}
-  .community-card[class*="card-theme-"] .community-actions .vote-button{min-height:33px !important;padding:7px 11px !important;}
-}
-
-
-/* Crisp, high-contrast card finish: vivid background, bold type, raised opaque controls. */
-.community-card[class*="card-theme-"]::after{
-  content:none !important;
-  display:none !important;
-}
-.community-card[class*="card-theme-"]{
-  filter:none !important;
-  -webkit-filter:none !important;
-  background-blend-mode:normal !important;
-}
-.community-card[class*="card-theme-"] .card-emoji-pattern{
-  opacity:.48 !important;
-  filter:none !important;
-  -webkit-filter:none !important;
-  transform:rotate(-7deg) scale(1.08);
-}
-.community-card[class*="card-theme-"] .card-emoji-pattern span{
-  opacity:.95 !important;
-  filter:none !important;
-  -webkit-filter:none !important;
-  font-size:24px;
-  text-shadow:0 2px 3px rgba(0,0,0,.24) !important;
-}
-.community-card[class*="card-theme-"] .community-main{
-  background:transparent !important;
-  text-shadow:none !important;
-}
-.community-card[class*="card-theme-"] .community-copy{
-  background:transparent !important;
-  border:0 !important;
-  box-shadow:none !important;
-  -webkit-backdrop-filter:none !important;
-  backdrop-filter:none !important;
-}
-.community-card[class*="card-theme-"] .community-copy>strong{
-  color:#fff !important;
-  font-size:16px !important;
-  font-weight:900 !important;
-  letter-spacing:-.2px;
-  line-height:1.22;
-  -webkit-text-stroke:.2px rgba(255,255,255,.45);
-  text-shadow:0 2px 5px rgba(0,0,0,.82),0 0 2px rgba(0,0,0,.65) !important;
-}
-.community-card[class*="card-theme-"] .community-copy>small{
-  color:#fff !important;
-  font-size:11px !important;
-  font-weight:800 !important;
-  text-shadow:0 2px 4px rgba(0,0,0,.9) !important;
-}
-.community-card[class*="card-theme-"] .community-description{
-  color:#fff !important;
-  font-size:12px !important;
-  font-weight:700 !important;
-  text-shadow:0 2px 4px rgba(0,0,0,.9) !important;
-}
-.community-card[class*="card-theme-"] .community-meta span{
-  color:#fff !important;
-  font-size:10px !important;
-  font-weight:800 !important;
-  text-shadow:0 2px 4px rgba(0,0,0,.9) !important;
-}
-.community-card[class*="card-theme-"] .community-meta svg{
-  color:#fff !important;
-  filter:drop-shadow(0 1px 2px rgba(0,0,0,.75));
-}
-
-/* Controls are fully opaque, self-contained raised buttons — no card colour showing through. */
-.community-card[class*="card-theme-"] .community-actions{
-  position:relative;
-  z-index:4;
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:10px !important;
-  padding:0 !important;
-  border:0 !important;
-  background:transparent !important;
-}
-.community-card[class*="card-theme-"] .community-actions .vote-button{
-  min-height:39px !important;
-  padding:0 17px !important;
-  border:1px solid #fff0b5 !important;
-  border-radius:12px !important;
-  background:linear-gradient(180deg,#fff0a8 0%,#ffd45a 48%,#e8a91f 100%) !important;
-  color:#342307 !important;
-  font-size:12px !important;
-  font-weight:900 !important;
-  text-shadow:none !important;
-  box-shadow:0 5px 0 #9a6810,0 7px 13px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.95) !important;
-  transform:translateY(-2px);
-}
-.community-card[class*="card-theme-"] .community-actions .vote-button:active{
-  transform:translateY(2px) !important;
-  box-shadow:0 1px 0 #9a6810,0 3px 7px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.8) !important;
-}
-.community-card[class*="card-theme-"] .community-actions .vote-button svg{
-  color:#342307 !important;
-}
-.community-card[class*="card-theme-"] .community-actions .vote-button.voted{
-  border-color:#c8ffe3 !important;
-  background:linear-gradient(180deg,#caffdf 0%,#70dfa9 52%,#35b979 100%) !important;
-  color:#073b27 !important;
-  box-shadow:0 5px 0 #16784d,0 7px 13px rgba(0,0,0,.3),inset 0 1px 0 #fff !important;
-}
-.community-card[class*="card-theme-"] .community-actions .vote-button.voted svg{
-  color:#073b27 !important;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button{
-  display:grid !important;
-  place-items:center !important;
-  width:39px !important;
-  height:39px !important;
-  min-width:39px !important;
-  padding:0 !important;
-  border:1px solid #fff !important;
-  border-radius:12px !important;
-  background:linear-gradient(180deg,#fff 0%,#e9edf7 100%) !important;
-  color:#51418e !important;
-  box-shadow:0 5px 0 #aeb6c8,0 7px 13px rgba(0,0,0,.3),inset 0 1px 0 #fff !important;
-  transform:translateY(-2px);
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button:active{
-  transform:translateY(2px) !important;
-  box-shadow:0 1px 0 #aeb6c8,0 3px 7px rgba(0,0,0,.25),inset 0 1px 0 #fff !important;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button svg{
-  color:#51418e !important;
-  stroke-width:2.5 !important;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button.favorite-selected{
-  border-color:#fff0ae !important;
-  background:linear-gradient(180deg,#fff2b5 0%,#ffd45a 100%) !important;
-  color:#4a3100 !important;
-  box-shadow:0 5px 0 #a87513,0 7px 13px rgba(0,0,0,.3),inset 0 1px 0 #fff !important;
-}
-.community-card[class*="card-theme-"] .community-actions .favorite-button.favorite-selected svg{
-  color:#4a3100 !important;
-  fill:rgba(255,205,70,.35) !important;
-}
-@media(max-width:560px){
-  .community-card[class*="card-theme-"] .community-copy>strong{font-size:15px !important;}
-  .community-card[class*="card-theme-"] .community-actions{gap:9px !important;}
-  .community-card[class*="card-theme-"] .community-actions .vote-button{min-height:37px !important;padding:0 14px !important;}
-  .community-card[class*="card-theme-"] .community-actions .favorite-button{width:37px !important;height:37px !important;min-width:37px !important;}
+ .community-card[class*="card-theme-"] .community-actions .favorite-button{width:37px;height:37px;min-width:37px}
+ .community-card[class*="card-theme-"] .community-actions .vote-button{min-height:37px;padding:0 14px}
 }
