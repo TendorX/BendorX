@@ -659,3 +659,5 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .leaderboard-table tbody tr.medal-1 .leaderboard-channel img { border:2px solid #e9b83d; box-shadow:0 0 10px rgba(255,203,72,.22); }
 .leaderboard-table tbody tr.medal-2 .leaderboard-channel img { border:2px solid #b8c4d2; }
 .leaderboard-table tbody tr.medal-3 .leaderboard-channel img { border:2px solid #b8734b; }
+
+.community-actions .favorite-button.favorite-selected{color:#17130a;border-color:#f6c84a;background:linear-gradient(145deg,#ffe879,#ffc928 62%,#f2a900);box-shadow:0 0 16px #ffc92838}.community-actions .favorite-button.favorite-selected:hover{filter:brightness(1.07)}
