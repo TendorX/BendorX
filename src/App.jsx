@@ -70,6 +70,11 @@ export default function App() {
   const [selectedQueueItem, setSelectedQueueItem] = useState(null);
   const [stats, setStats] = useState(null);
   const [adminItems, setAdminItems] = useState([]);
+  const [staffQuery, setStaffQuery] = useState('');
+  const [staffResult, setStaffResult] = useState(null);
+  const [staffMembers, setStaffMembers] = useState([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [staffSaving, setStaffSaving] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
   const [rejecting, setRejecting] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -177,6 +182,37 @@ export default function App() {
     setQueue(q || []); setStats(s || null); setAdminItems(all || []);
   }, [api, initData, me?.role, showDeleted, canManage]);
 
+  const loadStaff = useCallback(async () => {
+    if (!initData || me?.role !== 'master_admin') return;
+    setStaffLoading(true);
+    try { setStaffMembers(await api('staff_list') || []); }
+    finally { setStaffLoading(false); }
+  }, [api, initData, me?.role]);
+
+  const searchStaff = async () => {
+    if (!staffQuery.trim()) return notify('Введи Telegram ID или username.');
+    setStaffLoading(true);
+    setStaffResult(null);
+    try { setStaffResult(await api('staff_search', { query: staffQuery.trim() })); }
+    catch (err) { notify(err.message); }
+    finally { setStaffLoading(false); }
+  };
+
+  const changeStaffRole = async (person, role) => {
+    const label = role === 'admin' ? 'администратором' : role === 'moderator' ? 'модератором' : 'обычным пользователем';
+    if (!window.confirm(`Изменить роль пользователя ${person.name || person.username || person.tid} на «${label}»?`)) return;
+    setStaffSaving(true);
+    try {
+      await api('staff_set_role', { target_tid: person.tid, role });
+      const updated = { ...person, role };
+      setStaffResult(updated);
+      await loadStaff();
+      await loadMe();
+      notify(role === 'user' ? 'Права пользователя сняты' : 'Роль успешно назначена');
+    } catch (err) { notify(err.message); }
+    finally { setStaffSaving(false); }
+  };
+
   const refresh = useCallback(async (quiet = false) => {
     if (quiet) setRefreshing(true); else setLoading(true);
     setError('');
@@ -211,7 +247,8 @@ export default function App() {
 
   useEffect(() => {
     if (me && isStaff) loadAdmin().catch((err) => notify(err.message));
-  }, [me?.role, showDeleted]);
+    if (me?.role === 'master_admin' && tab === 'admin') loadStaff().catch((err) => notify(err.message));
+  }, [me?.role, showDeleted, tab]);
 
   useEffect(() => {
     if (tab === 'rating') loadLeaderboard().catch((err) => notify(err.message));
@@ -537,6 +574,27 @@ export default function App() {
       <PageHeader eyebrow="УПРАВЛЕНИЕ ПЛАТФОРМОЙ" title="Панель модерации" subtitle="Модерация заявок, контроль публикаций и статистика." action={<button className="icon-button" onClick={()=>loadAdmin().catch(e=>notify(e.message))}><RefreshCw size={17}/></button>}/>
       {!initData ? <TelegramGate/> : !isStaff ? <EmptyState text="У этой учётной записи нет доступа к панели модерации."/> : <div className="admin-page">
         <div className="metric-grid admin-metrics">{[['Пользователи',stats?.users],['Онлайн 24 ч.',stats?.active24h],['На модерации',stats?.pending],['Голосов',stats?.votes]].map(([label,value])=><div className="admin-stat" key={label}><b>{fmt(value)}</b><small>{label}</small></div>)}</div>
+        {me?.role === 'master_admin' && <section className="staff-management">
+          <div className="section-head"><div><h3>Управление персоналом</h3><p className="staff-caption">Назначай администраторов и модераторов по Telegram ID или username.</p></div><button className="text-action" onClick={()=>loadStaff().catch(e=>notify(e.message))}>Обновить</button></div>
+          <div className="staff-search-row">
+            <input value={staffQuery} onChange={e=>setStaffQuery(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')searchStaff();}} placeholder="Telegram ID или @username"/>
+            <button className="primary-button" disabled={staffLoading} onClick={searchStaff}><Search size={15}/> Найти</button>
+          </div>
+          {staffResult && <div className="staff-person staff-search-result">
+            <div className="staff-person-info"><b>{staffResult.name || 'Пользователь Telegram'}</b><small>{staffResult.username ? '@'+staffResult.username+' · ' : ''}ID: {staffResult.tid}</small><span className="role-pill">Текущая роль: {staffResult.role}</span></div>
+            {staffResult.role !== 'master_admin' && <div className="staff-actions">
+              <button disabled={staffSaving} onClick={()=>changeStaffRole(staffResult,'admin')}>Админ</button>
+              <button disabled={staffSaving} onClick={()=>changeStaffRole(staffResult,'moderator')}>Модератор</button>
+              <button className="staff-remove" disabled={staffSaving || staffResult.role==='user'} onClick={()=>changeStaffRole(staffResult,'user')}>Снять роль</button>
+            </div>}
+          </div>}
+          <div className="section-head staff-list-heading"><h3>Действующие администраторы и модераторы</h3><span className="staff-count">{staffMembers.length}</span></div>
+          {staffLoading && !staffMembers.length ? <div className="staff-empty">Загрузка списка…</div> : staffMembers.length ? staffMembers.map(person=><div className="staff-person" key={person.tid}>
+            <div className="staff-person-info"><b>{person.name || 'Пользователь Telegram'}</b><small>{person.username ? '@'+person.username+' · ' : ''}ID: {person.tid}</small><span className={`staff-role role-${person.role}`}>{person.role==='master_admin'?'Главный администратор':person.role==='admin'?'Администратор':'Модератор'}</span></div>
+            {person.role !== 'master_admin' && <div className="staff-actions"><button disabled={staffSaving} onClick={()=>changeStaffRole(person,person.role==='admin'?'moderator':'admin')}>{person.role==='admin'?'В модераторы':'В админы'}</button><button className="staff-remove" disabled={staffSaving} onClick={()=>changeStaffRole(person,'user')}>Снять</button></div>}
+          </div>) : <div className="staff-empty">Пока нет назначенных сотрудников.</div>}
+          <p className="staff-footnote">Поиск работает среди пользователей, которые хотя бы раз открывали Bendor-X. Главный администратор защищён от изменения роли.</p>
+        </section>}
         <div className="section-head"><h3>Очередь модерации</h3><button className="text-action" onClick={()=>loadAdmin()}>Обновить</button></div>
         {queue.length?queue.map(item=><article className="queue-item" key={item.id}>
           <button className="queue-item-open" onClick={()=>setSelectedQueueItem(item)}>
