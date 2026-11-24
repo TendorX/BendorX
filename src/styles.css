@@ -728,3 +728,121 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .card-preview-content span{font-size:11px;line-height:1.45;color:#ffffffed;}
 .card-preview-content em{font-size:10px;font-style:normal;color:#ffffffed;}
 @media(max-width:420px){.card-emoji-picker{grid-template-columns:repeat(8,minmax(0,1fr));}.card-theme-picker{gap:7px}.card-theme-option{font-size:10px;padding:7px;}.card-emoji-pattern{grid-auto-rows:31px}.card-emoji-pattern span{font-size:22px;}}
+
+/* Contrast pass for custom community cards: readable copy and unmistakable actions. */
+.community-card[class*="card-theme-"] .community-main{
+  position:relative;
+  z-index:2;
+  border-radius:15px 15px 0 0;
+  text-shadow:0 2px 5px rgba(0,0,0,.72);
+}
+.community-card[class*="card-theme-"] .community-copy{
+  position:relative;
+  min-width:0;
+  padding:8px 10px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:12px;
+  background:linear-gradient(110deg,rgba(8,11,20,.78),rgba(8,11,20,.57));
+  box-shadow:0 4px 16px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.08);
+  -webkit-backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px);
+}
+.community-card[class*="card-theme-"] .community-copy>strong{
+  display:block;
+  color:#fff !important;
+  font-size:15px;
+  font-weight:900;
+  line-height:1.25;
+  letter-spacing:.1px;
+  text-shadow:0 2px 4px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.35);
+}
+.community-card[class*="card-theme-"] .community-copy>small{
+  display:block;
+  margin-top:4px;
+  color:#e7f2ff !important;
+  font-size:11px;
+  font-weight:800;
+  text-shadow:0 1px 4px #000;
+}
+.community-card[class*="card-theme-"] .community-copy>small i{color:#b8c6da;}
+.community-card[class*="card-theme-"] .community-description{
+  display:block;
+  margin-top:6px;
+  color:#fff !important;
+  font-size:11px;
+  font-weight:600;
+  line-height:1.4;
+  text-shadow:0 1px 4px #000;
+}
+.community-card[class*="card-theme-"] .community-meta{
+  color:#fff !important;
+  font-weight:800;
+  text-shadow:0 1px 4px #000;
+}
+.community-card[class*="card-theme-"] .community-meta span{
+  color:#fff !important;
+}
+.community-card[class*="card-theme-"] .community-actions{
+  position:relative;
+  z-index:3;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:9px;
+  padding:10px 12px;
+  border-top:1px solid rgba(255,255,255,.2);
+  background:linear-gradient(90deg,rgba(5,8,16,.78),rgba(5,8,16,.68));
+}
+.community-card[class*="card-theme-"] .community-actions .vote-button{
+  min-height:38px;
+  padding:9px 17px;
+  border:1px solid rgba(255,255,255,.72) !important;
+  border-radius:12px;
+  background:linear-gradient(135deg,#fff08a 0%,#ffd23f 52%,#f4a900 100%) !important;
+  color:#241b06 !important;
+  font-size:12px;
+  font-weight:900;
+  text-shadow:none !important;
+  box-shadow:0 4px 14px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.8);
+}
+.community-card[class*="card-theme-"] .community-actions .vote-button svg{
+  color:#382600 !important;
+}
+.community-card[class*="card-theme-"] .community-actions .vote-button.voted{
+  border-color:#baf5db !important;
+  background:linear-gradient(135deg,#c5ffe1,#51d69a) !important;
+  color:#073b27 !important;
+}
+.community-card[class*="card-theme-"] .community-actions .favorite-button{
+  display:grid;
+  place-items:center;
+  width:39px;
+  height:38px;
+  min-width:39px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.8) !important;
+  border-radius:12px;
+  background:linear-gradient(145deg,#fff 0%,#e8edff 100%) !important;
+  color:#4b3b9c !important;
+  box-shadow:0 4px 13px rgba(0,0,0,.3),inset 0 1px 0 #fff;
+}
+.community-card[class*="card-theme-"] .community-actions .favorite-button svg{
+  color:#4b3b9c !important;
+  stroke-width:2.5;
+}
+.community-card[class*="card-theme-"] .community-actions .favorite-button.favorite-selected{
+  border-color:#fff0a3 !important;
+  background:linear-gradient(145deg,#fff2a6,#ffc928 72%,#f0a900) !important;
+  color:#382700 !important;
+}
+.community-card[class*="card-theme-"] .community-actions .favorite-button.favorite-selected svg{
+  color:#382700 !important;
+  fill:#ffe17a;
+}
+@media(max-width:420px){
+  .community-card[class*="card-theme-"] .community-copy{padding:7px 8px;}
+  .community-card[class*="card-theme-"] .community-copy>strong{font-size:14px;}
+  .community-card[class*="card-theme-"] .community-actions{padding:9px 10px;}
+  .community-card[class*="card-theme-"] .community-actions .vote-button{min-height:36px;padding:8px 14px;}
+}
+
