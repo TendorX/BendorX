@@ -15,6 +15,8 @@ const HEADERS = {
 };
 
 const encoder = new TextEncoder();
+const ALLOWED_CARD_THEMES = new Set(['violet','ocean','sunset','emerald','ruby','gold','blue','midnight']);
+const ALLOWED_CARD_EMOJIS = new Set(['✨','🔥','⚡','🚀','💎','🎮','👑','🌸','⭐','🦋','🐼','🎯','💫','🌙','🍀','🎧','🧩','❤️','☀️','🪐']);
 
 class ApiError extends Error {
   status: number;
@@ -472,6 +474,9 @@ Deno.serve(async (req: Request) => {
           .filter(Boolean)
           .slice(0, 5);
 
+        const cardTheme = ALLOWED_CARD_THEMES.has(String(body.card_theme)) ? String(body.card_theme) : 'violet';
+        const cardEmoji = ALLOWED_CARD_EMOJIS.has(String(body.card_emoji)) ? String(body.card_emoji) : '✨';
+
         data = await rpc("tx_submit", {
           p_tid: tid,
           p_username: cleanText(body.username, 40),
@@ -481,6 +486,14 @@ Deno.serve(async (req: Request) => {
           p_tags: tags,
           p_kind: cleanText(body.kind, 12),
         });
+
+        const { error: designError } = await db.from('communities')
+          .update({ card_theme: cardTheme, card_emoji: cardEmoji })
+          .eq('id', data as number).eq('owner_tid', tid);
+        if (designError) {
+          console.error('Community card design update failed:', designError.code);
+          throw new ApiError(500, 'Не удалось сохранить оформление карточки. Попробуйте отправить заявку ещё раз.');
+        }
 
         const avatar = typeof body.avatar === "string" ? body.avatar : "";
         if (avatar) {
