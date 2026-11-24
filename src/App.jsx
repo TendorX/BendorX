@@ -409,9 +409,16 @@ export default function App() {
     </article>
   );
 
-  const PageHeader = ({ eyebrow, title, subtitle, action }) => (
-    <div className="page-heading"><div>{eyebrow && <div className="eyebrow">{eyebrow}</div>}<h1>{title}</h1>{subtitle && <p>{subtitle}</p>}</div>{action}</div>
-  );
+  const PageHeader = ({ eyebrow, title, subtitle, action }) => {
+    const showProfileBack = ['notifications', 'admin', 'profile-publications', 'profile-votes', 'profile-favorites'].includes(tab);
+    return (
+      <div className={`page-heading ${showProfileBack ? 'page-heading-with-back' : ''}`}>
+        {showProfileBack && <button className="icon-button page-back-button" aria-label="Назад в профиль" title="Назад в профиль" onClick={() => setTab('profile')}><ArrowLeft size={19}/></button>}
+        <div className="page-heading-copy">{eyebrow && <div className="eyebrow">{eyebrow}</div>}<h1>{title}</h1>{subtitle && <p>{subtitle}</p>}</div>
+        {action}
+      </div>
+    );
+  };
 
   const nav = [
     ['home', Home, 'Главная'], ['catalog', Grid2X2, 'Категории'], ['add', Plus, 'Добавить'], ['rating', Trophy, 'Рейтинг'], ['profile', Users, 'Профиль']
@@ -541,8 +548,7 @@ export default function App() {
 
   const renderProfileSubpage = (page, title, subtitle, content) => (
     <>
-      <PageHeader eyebrow="ЛИЧНЫЙ КАБИНЕТ" title={title} subtitle={subtitle}
-        action={<button className="icon-button" aria-label="Назад в профиль" onClick={()=>setTab('profile')}><ArrowLeft size={17}/></button>}/>
+      <PageHeader eyebrow="ЛИЧНЫЙ КАБИНЕТ" title={title} subtitle={subtitle}/>
       {!initData ? <TelegramGate/> : content}
     </>
   );
