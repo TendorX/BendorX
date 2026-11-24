@@ -3,13 +3,11 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/BendorX/web/',
+  // GitHub Pages project URL: https://tendorx.github.io/BendorX/
+  base: '/BendorX/',
   build: {
-    outDir: 'web',
+    outDir: 'dist',
     emptyOutDir: true,
-    sourcemap: false,
-    rollupOptions: {
-      input: 'app.html'
-    }
+    sourcemap: false
   }
 });
