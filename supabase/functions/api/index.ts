@@ -242,6 +242,7 @@ Deno.serve(async (req: Request) => {
     // Не доверяем данным пользователя, пока одна из проверок не прошла.
     let user: any = null;
     let verified = false;
+    let verifiedBotToken = "";
     let lastAuthError: unknown = null;
 
     for (const candidateToken of botTokens) {
@@ -250,6 +251,7 @@ Deno.serve(async (req: Request) => {
           String(body.initData ?? ""),
           candidateToken,
         );
+        verifiedBotToken = candidateToken;
         verified = true;
         break;
       } catch (error) {
@@ -488,6 +490,57 @@ Deno.serve(async (req: Request) => {
           const up = await db.from("communities").update({ avatar_path: avatar }).eq("id", data as number).eq("owner_tid", tid);
           if (up.error) console.error("avatar update error:", up.error.code);
         }
+
+        // Send a best-effort notification to the private admin group.
+        // A Telegram delivery failure must never undo a successfully created submission.
+        const adminChatId = (Deno.env.get("BENDORX_ADMIN_CHAT_ID") || "").trim();
+        if (adminChatId) {
+          try {
+            const { data: submitted, error: submittedError } = await db
+              .from("communities")
+              .select("id,title,username,link,kind,created_at,owner_tid")
+              .eq("id", data as number)
+              .eq("owner_tid", tid)
+              .maybeSingle();
+
+            if (submittedError || !submitted) {
+              console.error("Admin notification: community lookup failed", submittedError?.code);
+            } else {
+              const kindLabel = submitted.kind === "channel" ? "Канал"
+                : submitted.kind === "supergroup" ? "Супергруппа" : "Группа / чат";
+              const userLabel = [displayName, user.username ? `@${cleanText(user.username, 32)}` : ""]
+                .filter(Boolean).join(" ");
+              const message = [
+                "🔔 НОВАЯ ЗАЯВКА НА МОДЕРАЦИЮ",
+                "",
+                `Пользователь: ${userLabel}`,
+                `Telegram ID: ${tid}`,
+                `Название: ${cleanText(submitted.title, 80)}`,
+                `Тип: ${kindLabel}`,
+                `Ссылка: ${cleanText(submitted.link, 200)}`,
+                `Заявка №: ${submitted.id}`,
+                `Дата: ${new Date(submitted.created_at).toLocaleString("ru-RU", { timeZone: "Europe/Moscow" })}`,
+                "",
+                "Статус: ожидает проверки"
+              ].join("\\n");
+
+              const telegramResponse = await fetch(`https://api.telegram.org/bot${verifiedBotToken}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: adminChatId, text: message, disable_web_page_preview: true })
+              });
+              const telegramResult = await telegramResponse.json();
+              if (!telegramResponse.ok || telegramResult?.ok !== true) {
+                console.error("Admin Telegram notification failed", telegramResult?.error_code ?? telegramResponse.status);
+              }
+            }
+          } catch (notificationError) {
+            console.error("Admin Telegram notification failed", notificationError);
+          }
+        } else {
+          console.warn("BENDORX_ADMIN_CHAT_ID is not configured; notifications are disabled");
+        }
+
 
         break;
       }
