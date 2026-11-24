@@ -522,7 +522,7 @@ Deno.serve(async (req: Request) => {
                 `Дата: ${new Date(submitted.created_at).toLocaleString("ru-RU", { timeZone: "Europe/Moscow" })}`,
                 "",
                 "Статус: ожидает проверки"
-              ].join("\\n");
+              ].join("\n");
 
               const telegramResponse = await fetch(`https://api.telegram.org/bot${verifiedBotToken}/sendMessage`, {
                 method: "POST",
