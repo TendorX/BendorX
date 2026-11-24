@@ -561,6 +561,79 @@ Deno.serve(async (req: Request) => {
         break;
       }
 
+      // Управление персоналом доступно исключительно master_admin.
+      case "staff_list": {
+        const { data: actor, error: actorError } = await db
+          .from("profiles").select("role,banned").eq("tid", tid).maybeSingle();
+        if (actorError || actor?.role !== "master_admin" || actor?.banned) {
+          throw new ApiError(403, "Управлять ролями может только главный администратор");
+        }
+        const { data: staff, error: staffError } = await db
+          .from("profiles")
+          .select("tid,name,username,role,last_seen")
+          .in("role", ["master_admin", "admin", "moderator"])
+          .order("role", { ascending: true })
+          .order("name", { ascending: true })
+          .limit(200);
+        if (staffError) throw new ApiError(500, "Не удалось загрузить список персонала");
+        data = staff ?? [];
+        break;
+      }
+
+      case "staff_search": {
+        const { data: actor, error: actorError } = await db
+          .from("profiles").select("role,banned").eq("tid", tid).maybeSingle();
+        if (actorError || actor?.role !== "master_admin" || actor?.banned) {
+          throw new ApiError(403, "Искать пользователей для назначения ролей может только главный администратор");
+        }
+        const needle = cleanText(body.query, 64).replace(/^@/, "");
+        if (!needle) throw new ApiError(400, "Введи Telegram ID или username");
+        let lookup = db.from("profiles").select("tid,name,username,role,last_seen");
+        if (/^\\d+$/.test(needle)) {
+          const targetTid = Number(needle);
+          if (!Number.isSafeInteger(targetTid) || targetTid <= 0) throw new ApiError(400, "Некорректный Telegram ID");
+          lookup = lookup.eq("tid", targetTid);
+        } else {
+          if (!/^[a-zA-Z0-9_]{4,32}$/.test(needle)) throw new ApiError(400, "Некорректный username");
+          lookup = lookup.ilike("username", needle);
+        }
+        const { data: found, error: findError } = await lookup.maybeSingle();
+        if (findError) throw new ApiError(500, "Не удалось выполнить поиск пользователя");
+        if (!found) throw new ApiError(404, "Пользователь не найден. Он должен хотя бы один раз открыть Bendor-X.");
+        data = found;
+        break;
+      }
+
+      case "staff_set_role": {
+        const { data: actor, error: actorError } = await db
+          .from("profiles").select("role,banned").eq("tid", tid).maybeSingle();
+        if (actorError || actor?.role !== "master_admin" || actor?.banned) {
+          throw new ApiError(403, "Выдавать и снимать роли может только главный администратор");
+        }
+        const targetTid = positiveInteger(body.target_tid);
+        const nextRole = cleanText(body.role, 20);
+        if (!["user", "admin", "moderator"].includes(nextRole)) {
+          throw new ApiError(400, "Недопустимая роль");
+        }
+        if (targetTid === tid) throw new ApiError(400, "Нельзя изменить собственную роль из этой панели");
+        const { data: target, error: targetError } = await db
+          .from("profiles").select("tid,name,username,role").eq("tid", targetTid).maybeSingle();
+        if (targetError) throw new ApiError(500, "Не удалось проверить пользователя");
+        if (!target) throw new ApiError(404, "Пользователь не найден");
+        if (target.role === "master_admin") throw new ApiError(403, "Нельзя изменить роль главного администратора");
+        const { error: updateError } = await db.from("profiles").update({ role: nextRole }).eq("tid", targetTid);
+        if (updateError) throw new ApiError(500, "Не удалось изменить роль пользователя");
+        const { error: auditError } = await db.from("audit_log").insert({
+          actor_tid: tid,
+          action: "staff_role_change",
+          target: "user:" + targetTid,
+          details: { from: target.role, to: nextRole, username: target.username ?? null }
+        });
+        if (auditError) console.error("Staff role audit write failed:", auditError.code);
+        data = { tid: targetTid, role: nextRole };
+        break;
+      }
+
       default: {
         throw new ApiError(400, "Неизвестное действие");
       }
