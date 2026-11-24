@@ -547,6 +547,19 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
   animation:bx-nav-ripple .48s ease-out both;
   pointer-events:none;
 }
+/* Highlight the central Add action in warm yellow while pressed and on its page. */
+.bottom-nav button.add-nav:active .nav-icon-wrap,
+.bottom-nav button.add-nav.active .nav-icon-wrap {
+  background:linear-gradient(145deg,#ffe879 0%,#ffc928 52%,#f2a900 100%) !important;
+  color:#302308 !important;
+  border-color:#171a21 !important;
+  box-shadow:0 7px 23px rgba(255,196,35,.42),0 0 0 3px rgba(255,218,91,.12),inset 0 1px 0 rgba(255,255,255,.55) !important;
+}
+.bottom-nav button.add-nav:active .nav-icon,
+.bottom-nav button.add-nav.active .nav-icon {
+  color:#302308 !important;
+  filter:drop-shadow(0 1px 1px rgba(255,255,255,.2));
+}
 /* The central Add action keeps its own button styling, never the glass frame. */
 .bottom-nav button.add-nav:active:after { content:none !important; }
 .bottom-nav button.add-nav.active .nav-icon-wrap,
