@@ -349,7 +349,7 @@ export default function App() {
         category: Number(add.category), kind: add.kind, card_theme: add.card_theme, card_emoji: null,
         tags: add.tags.split(',').map((x) => x.trim()).filter(Boolean).slice(0, 5).join(','), avatar
       });
-      setAdd({ title: '', link: '', description: '', category: '', kind: 'channel', tags: '', card_theme: 'violet', card_emoji: '✨' });
+      setAdd({ title: '', link: '', description: '', category: '', kind: 'channel', tags: '', card_theme: 'violet' });
       setImageFile(null); setImagePreview('');
       await reloadEverything(); setTab('profile-publications');
       notify('Заявка отправлена на модерацию');
