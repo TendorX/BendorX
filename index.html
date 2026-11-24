@@ -3,17 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
     <title>Bendor-X</title>
     <script>
-      // Preserve Telegram Web App launch parameters (including initData in the hash).
-      const target = '/BendorX/web/app.html' + window.location.search + window.location.hash;
-      window.location.replace(target);
+      // Keep the project path relative so the app also works if the repository
+      // name changes. Preserve Telegram launch parameters.
+      const target = new URL("./web/app.html", window.location.href);
+      target.search = window.location.search;
+      target.hash = window.location.hash;
+      window.location.replace(target.href);
     </script>
   </head>
   <body>
-    <p>Открываем Bendor-X… <a id="app-link" href="/BendorX/web/app.html">Нажмите здесь, если переход не сработал.</a></p>
+    <p>Открываем Bendor-X… <a id="app-link" href="./web/app.html">Нажмите здесь, если переход не сработал.</a></p>
     <script>
-      document.getElementById('app-link').href = target;
+      const link = document.getElementById("app-link");
+      const target = new URL("./web/app.html", window.location.href);
+      target.search = window.location.search;
+      target.hash = window.location.hash;
+      link.href = target.href;
     </script>
   </body>
 </html>
