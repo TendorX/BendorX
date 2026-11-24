@@ -846,3 +846,125 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
   .community-card[class*="card-theme-"] .community-actions .vote-button{min-height:36px;padding:8px 14px;}
 }
 
+
+
+/* Premium card refinement: remove oversized glass panels and soften the visual hierarchy. */
+.community-card[class*="card-theme-"]{
+  border:1px solid rgba(255,255,255,.13) !important;
+  box-shadow:0 8px 24px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+.community-card[class*="card-theme-"]::after{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(100deg,rgba(5,8,18,.32) 0%,rgba(5,8,18,.13) 58%,rgba(5,8,18,.04) 100%);
+  pointer-events:none;
+}
+.community-card[class*="card-theme-"] .card-emoji-pattern{
+  opacity:.22 !important;
+  transform:rotate(-8deg) scale(1.08);
+}
+.community-card[class*="card-theme-"] .card-emoji-pattern span{
+  opacity:.82 !important;
+  font-size:22px;
+  text-shadow:0 1px 3px rgba(0,0,0,.18) !important;
+}
+.community-card[class*="card-theme-"] .community-main{
+  z-index:1;
+  text-shadow:0 1px 3px rgba(0,0,0,.42) !important;
+}
+.community-card[class*="card-theme-"] .community-copy{
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+}
+.community-card[class*="card-theme-"] .community-copy>strong{
+  color:#fff !important;
+  font-size:15px;
+  font-weight:800 !important;
+  letter-spacing:-.15px;
+  text-shadow:0 1px 3px rgba(0,0,0,.52) !important;
+}
+.community-card[class*="card-theme-"] .community-copy>small{
+  color:rgba(255,255,255,.82) !important;
+  font-weight:600 !important;
+  text-shadow:0 1px 3px rgba(0,0,0,.48) !important;
+}
+.community-card[class*="card-theme-"] .community-description{
+  color:rgba(255,255,255,.88) !important;
+  font-weight:500 !important;
+  text-shadow:0 1px 3px rgba(0,0,0,.48) !important;
+}
+.community-card[class*="card-theme-"] .community-meta span{
+  color:rgba(255,255,255,.86) !important;
+  font-weight:600 !important;
+  text-shadow:0 1px 3px rgba(0,0,0,.48) !important;
+}
+.community-card[class*="card-theme-"] .community-meta svg{
+  color:rgba(255,255,255,.86) !important;
+}
+.community-card[class*="card-theme-"] .community-actions{
+  z-index:1;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  gap:7px !important;
+}
+.community-card[class*="card-theme-"] .community-actions .vote-button{
+  min-height:34px !important;
+  padding:7px 13px !important;
+  border:1px solid rgba(255,231,170,.62) !important;
+  border-radius:10px !important;
+  background:rgba(255,220,135,.16) !important;
+  color:#fff1c9 !important;
+  font-size:11px !important;
+  font-weight:700 !important;
+  box-shadow:0 2px 8px rgba(0,0,0,.12) !important;
+  text-shadow:0 1px 2px rgba(0,0,0,.3) !important;
+}
+.community-card[class*="card-theme-"] .community-actions .vote-button svg{
+  color:#ffe3a0 !important;
+}
+.community-card[class*="card-theme-"] .community-actions .vote-button.voted{
+  border-color:rgba(164,239,205,.62) !important;
+  background:rgba(89,205,151,.2) !important;
+  color:#d8ffeb !important;
+}
+.community-card[class*="card-theme-"] .community-actions .vote-button.voted svg{
+  color:#d8ffeb !important;
+}
+.community-card[class*="card-theme-"] .community-actions .favorite-button{
+  width:34px !important;
+  height:34px !important;
+  min-width:34px !important;
+  border:1px solid rgba(255,255,255,.36) !important;
+  border-radius:10px !important;
+  background:rgba(12,16,27,.2) !important;
+  color:rgba(255,255,255,.92) !important;
+  box-shadow:none !important;
+}
+.community-card[class*="card-theme-"] .community-actions .favorite-button svg{
+  color:rgba(255,255,255,.92) !important;
+  stroke-width:2 !important;
+}
+.community-card[class*="card-theme-"] .community-actions .favorite-button.favorite-selected{
+  border-color:rgba(255,224,137,.78) !important;
+  background:rgba(255,208,91,.22) !important;
+  color:#ffe7a4 !important;
+  box-shadow:none !important;
+}
+.community-card[class*="card-theme-"] .community-actions .favorite-button.favorite-selected svg{
+  color:#ffe7a4 !important;
+  fill:rgba(255,224,137,.3) !important;
+}
+@media(max-width:560px){
+  .community-card[class*="card-theme-"] .community-copy{padding:0 !important;}
+  .community-card[class*="card-theme-"] .community-actions{padding:0 !important;}
+  .community-card[class*="card-theme-"] .community-actions .vote-button{min-height:33px !important;padding:7px 11px !important;}
+}
