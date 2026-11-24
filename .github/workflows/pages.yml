@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: bendorx-pages-production-v2
+  group: bendorx-pages-production-v3
   cancel-in-progress: true
 
 jobs:
@@ -25,11 +25,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Set GitHub Pages source to Actions
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
