@@ -180,13 +180,27 @@ export default function App() {
   const refresh = useCallback(async (quiet = false) => {
     if (quiet) setRefreshing(true); else setLoading(true);
     setError('');
+    let timeoutId;
     try {
-      await loadPublic();
-      if (initData) await loadMe();
+      // A stalled network/Supabase request must never leave the Mini App
+      // on its startup screen forever. Show a retryable error after 15s.
+      await Promise.race([
+        (async () => {
+          await loadPublic();
+          if (initData) await loadMe();
+        })(),
+        new Promise((_, reject) => {
+          timeoutId = window.setTimeout(() => {
+            reject(new Error('Сервер не ответил за 15 секунд. Проверь интернет и нажми «Повторить».'));
+          }, 15000);
+        })
+      ]);
     } catch (err) {
       setError(err.message || 'Не удалось загрузить данные');
     } finally {
-      setLoading(false); setRefreshing(false);
+      if (timeoutId) window.clearTimeout(timeoutId);
+      setLoading(false);
+      setRefreshing(false);
     }
   }, [loadPublic, loadMe, initData]);
 
