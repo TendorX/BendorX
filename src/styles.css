@@ -383,3 +383,26 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .brand-name .brand-hyphen{color:#fff!important}
 .brand-name .brand-x{color:var(--purple)!important}
 .brand-name small{display:block}
+
+
+/* Master administrator: staff access management */
+.staff-management{margin:22px 0 28px;padding:17px;border:1px solid var(--line);border-radius:17px;background:#191c23}
+.staff-caption{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.45}
+.staff-search-row{display:flex;gap:8px;margin:14px 0}
+.staff-search-row input{min-width:0;flex:1;padding:12px;border:1px solid var(--line);border-radius:11px;background:#12151b;color:#f4f4f6;font-size:12px}
+.staff-search-row .primary-button{display:flex;align-items:center;justify-content:center;gap:6px;margin:0;padding:10px 13px}
+.staff-person{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.staff-search-result{margin:4px 0 12px;padding:13px;border:1px solid #8b7cff55;border-radius:12px;background:#8b7cff0b}
+.staff-person-info{display:flex;min-width:0;flex-direction:column;gap:4px}
+.staff-person-info>b{font-size:12px;overflow-wrap:anywhere}
+.staff-person-info>small{color:var(--muted);font-size:10px;overflow-wrap:anywhere}
+.staff-role{width:max-content;padding:4px 7px;border-radius:20px;background:#ffffff0d;color:#c8c1ff;font-size:9px;font-weight:750}
+.staff-actions{display:flex;flex:none;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.staff-actions button{padding:7px 9px;border:1px solid #8b7cff55;border-radius:9px;background:#8b7cff17;color:#d2ccff;font-size:10px;font-weight:750}
+.staff-actions button.staff-remove{border-color:#e17d7d44;background:#e17d7d10;color:#f0a2a2}
+.staff-actions button:disabled{opacity:.45}
+.staff-list-heading{margin-top:18px}
+.staff-count{color:var(--muted);font-size:11px}
+.staff-empty{padding:15px 0;color:var(--muted);font-size:11px}
+.staff-footnote{margin:12px 0 0;color:var(--muted);font-size:9px;line-height:1.5}
+@media(max-width:560px){.staff-management{padding:13px}.staff-person{align-items:flex-start;flex-direction:column}.staff-actions{width:100%;justify-content:flex-start}.staff-actions button{flex:1}.staff-search-row input{font-size:11px}.staff-search-row .primary-button{padding:9px 10px;font-size:10px}}
