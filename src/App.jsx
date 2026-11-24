@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
   Activity, ArrowDownUp, ArrowLeft, ArrowRight, Bell, Bookmark, Check,
-  ChevronDown, ChevronRight, CircleHelp, Clock3, ExternalLink, Eye, FileText,
+  ChevronDown, ChevronRight, CircleHelp, Clock3, Crown, ExternalLink, Eye, FileText,
   Filter, Flame, Grid2X2, Heart, Home, ImagePlus, LayoutDashboard, LoaderCircle,
   LogIn, Menu, MessageCircle, Plus, RefreshCw, Search, Send, ShieldCheck,
   SlidersHorizontal, Sparkles, Star, ThumbsUp, Trash2, Trophy, Users, X
@@ -515,8 +515,8 @@ export default function App() {
           <table className="leaderboard-table">
             <thead><tr><th>Место</th><th>Сообщество</th><th>{leaderboardMetric==='votes'?'Голоса':'Переходы'}</th></tr></thead>
             <tbody>{leaderboard.slice(0,10).map((item,index)=>(
-              <tr key={item.id}>
-                <td><span className={`leaderboard-place place-${index+1}`}>{index+1}</span></td>
+              <tr key={item.id} className={index < 3 ? `leaderboard-medal-row medal-${index+1}` : ''}>
+                <td><span className={`leaderboard-place place-${index+1}`}>{index===0 && <Crown className="leaderboard-crown" size={17} strokeWidth={2.4}/>}<span>{index+1}</span></span></td>
                 <td><button className="leaderboard-channel" onClick={()=>openCommunity(item)}>
                   {avatarUrl(item)?<img src={avatarUrl(item)} alt=""/>:<span className="avatar fallback">{(item.title||'?').slice(0,1).toUpperCase()}</span>}
                   <span><b>{item.title}</b><small>@{item.username||'telegram'} · {item.category||categoryLabel(item.category_id)}</small></span>
