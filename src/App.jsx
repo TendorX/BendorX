@@ -487,7 +487,17 @@ export default function App() {
         <label>Тип сообщества</label><div className="choice-row"><button type="button" className={add.kind === 'channel' ? 'chosen' : ''} onClick={() => setAdd({...add,kind:'channel'})}>Канал</button><button type="button" className={add.kind === 'group' ? 'chosen' : ''} onClick={() => setAdd({...add,kind:'group'})}>Группа / чат</button></div>
         <label>Ссылка Telegram</label><input required value={add.link} onChange={(e) => setAdd({...add,link:e.target.value})} placeholder="https://t.me/your_channel или @username"/>
         <label>Название</label><input required minLength={2} maxLength={80} value={add.title} onChange={(e) => setAdd({...add,title:e.target.value})} placeholder="Название канала или группы"/>
-        <label>Категория</label><select required value={add.category} onChange={(e) => setAdd({...add,category:e.target.value})}><option value="">Выбери категорию</option>{categories.map((c)=><option key={c.id} value={c.id}>{c.title}</option>)}</select>
+        <label>Выбери категорию</label>
+        <div className="category-grid add-category-grid" role="group" aria-label="Выбор категории">
+          {categories.map((c,index)=>(
+            <button type="button" key={c.id} className={`category-tile ${add.category===String(c.id)?'category-tile-active':''}`} aria-pressed={add.category===String(c.id)} onClick={()=>setAdd({...add,category:String(c.id)})}>
+              <span className={`category-symbol tone-${index%6}`}>{c.icon || '✦'}</span>
+              <span><b>{c.title}</b><small>{fmt(c.groups)} сообществ</small></span>
+              <ChevronRight size={16}/>
+            </button>
+          ))}
+        </div>
+        {!add.category && <small className="add-category-hint">Выбери одну категорию для публикации.</small>}
         <label>Описание <small>до 500 символов</small></label><textarea rows={4} maxLength={500} value={add.description} onChange={(e) => setAdd({...add,description:e.target.value})} placeholder="Чем полезно ваше сообщество?"/>
         <label>Теги <small>через запятую, максимум 5</small></label><input value={add.tags} onChange={(e) => setAdd({...add,tags:e.target.value})} placeholder="Новости, технологии, обучение"/>
         <div className="upload-box"><div className="upload-preview">{imagePreview ? <img src={imagePreview} alt="Предпросмотр"/> : <ImagePlus size={24}/>}</div><div><b>Аватар сообщества</b><small>Необязательно · JPG, PNG или WebP · до 8 МБ</small><label className="upload-link">Выбрать изображение<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e)=>{const f=e.target.files?.[0];if(!f)return;setImageFile(f);setImagePreview(URL.createObjectURL(f));}}/></label></div></div>
