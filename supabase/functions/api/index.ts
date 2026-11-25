@@ -535,9 +535,11 @@ Deno.serve(async (req: Request) => {
           communityId = Number(submittedCommunity.id);
         }
 
+        // Сохраняем выбранный тип напрямую, даже если RPC tx_submit не записал p_kind.
+        const communityKind = body.kind === "channel" ? "channel" : "group";
         const { error: designError, count: designCount } = await db
           .from("communities")
-          .update({ card_theme: cardTheme, card_emoji: cardEmoji }, { count: "exact" })
+          .update({ card_theme: cardTheme, card_emoji: cardEmoji, kind: communityKind }, { count: "exact" })
           .eq("id", communityId)
           .eq("owner_tid", tid);
 
