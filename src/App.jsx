@@ -84,6 +84,7 @@ export default function App() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [showAllHomeCategories, setShowAllHomeCategories] = useState(false);
   const [homeSort, setHomeSort] = useState('votes');
+  const [voteNoticeIds, setVoteNoticeIds] = useState(() => new Set());
 
   const initData = tg?.initData || '';
   const telegramUser = tg?.initDataUnsafe?.user || null;
@@ -288,7 +289,23 @@ export default function App() {
         return { ...current, voted: nextVotes };
       });
       await reloadEverything();
-      notify(removingVote ? 'Голос отменён' : 'Вы проголосовали');
+      if (removingVote) {
+        setVoteNoticeIds((current) => {
+          const next = new Set(current);
+          next.delete(voteId);
+          return next;
+        });
+        notify('Голос отменён');
+      } else {
+        setVoteNoticeIds((current) => new Set([...current, voteId]));
+        window.setTimeout(() => {
+          setVoteNoticeIds((current) => {
+            const next = new Set(current);
+            next.delete(voteId);
+            return next;
+          });
+        }, 1000);
+      }
     } catch (err) { notify(err.message); }
   };
 
@@ -424,9 +441,9 @@ export default function App() {
       </button>
       <div className="community-actions">
         <button className={`icon-button favorite-button ${favoriteIds.has(Number(item.id)) ? 'favorite-selected' : ''}`} title="Избранное" onClick={() => changeFavorite(item.id)}><Bookmark size={17}/></button>
-        {votedIds.has(Number(item.id))
-          ? <span className="vote-button vote-confirmed" role="status"><Check size={15}/> Вы проголосовали</span>
-          : <button className="vote-button" onClick={() => changeVote(item.id)}><ThumbsUp size={15}/> Голос</button>}
+        {voteNoticeIds.has(Number(item.id))
+          ? <span className="vote-button vote-confirmed" role="status">Вы проголосовали</span>
+          : !votedIds.has(Number(item.id)) && <button className="vote-button" onClick={() => changeVote(item.id)}><ThumbsUp size={15}/> Голос</button>}
       </div>
     </article>
   );
