@@ -415,7 +415,7 @@ export default function App() {
     catch (err) { notify(err.message); }
   };
 
-  const homeCommunities = useMemo(() => [...communities].sort((a, b) => homeSort === 'alphabet' ? String(a.title || '').localeCompare(String(b.title || ''), 'ru', { sensitivity: 'base' }) : Number(b.votes || 0) - Number(a.votes || 0)), [communities, homeSort]);
+  const homeCommunities = useMemo(() => communities.filter((item) => ['киберренды', 'blackout mobile'].includes(String(item.title || '').trim().toLocaleLowerCase('ru-RU'))).sort((a, b) => homeSort === 'alphabet' ? String(a.title || '').localeCompare(String(b.title || ''), 'ru', { sensitivity: 'base' }) : Number(b.votes || 0) - Number(a.votes || 0)), [communities, homeSort]);
 
   const filtered = communities;
   const filteredCategories = useMemo(() => {
