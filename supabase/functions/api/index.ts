@@ -686,7 +686,7 @@ Deno.serve(async (req: Request) => {
                     `Название: ${cleanText(moderatedCommunity.title, 80)}`,
                     `Тип: ${kindLabel}`,
                     `Одобрил: ${roleLabel} ${moderatorLabel}`,
-                  ].join("\\n")
+                  ].join("\n")
                 : [
                     "❌ ЗАЯВКА ОТКЛОНЕНА",
                     "",
@@ -695,7 +695,7 @@ Deno.serve(async (req: Request) => {
                     `Тип: ${kindLabel}`,
                     `Отклонил: ${roleLabel} ${moderatorLabel}`,
                     `Причина: ${moderationReason || "не указана"}`,
-                  ].join("\\n");
+                  ].join("\n");
 
               const telegramResponse = await fetch(`https://api.telegram.org/bot${verifiedBotToken}/sendMessage`, {
                 method: "POST",
