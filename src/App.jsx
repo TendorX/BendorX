@@ -64,7 +64,7 @@ export default function App() {
   const [sort, setSort] = useState('top');
   const [details, setDetails] = useState(null);
   const [profilePage, setProfilePage] = useState('main');
-  const [add, setAdd] = useState({ title: '', link: '', description: '', category: '', kind: 'channel', tags: '', card_theme: 'violet' });
+  const [add, setAdd] = useState({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet' });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -378,17 +378,17 @@ export default function App() {
     const username = parseTelegramLink(add.link);
     if (!username) return notify('Укажи корректную публичную ссылку t.me или @username.');
     if (add.title.trim().length < 2) return notify('Название должно содержать минимум 2 символа.');
-    if (!add.category) return notify('Выбери категорию.');
+    if (!add.category_ids.length || add.category_ids.length > 3) return notify('Выбери от 1 до 3 категорий.');
     if (add.description.trim().length > 500) return notify('Описание слишком длинное.');
     setSubmitting(true);
     try {
       const avatar = await uploadAvatar();
       await api('submit', {
         username, title: add.title.trim(), description: add.description.trim(),
-        category: Number(add.category), kind: add.kind, card_theme: add.card_theme, card_emoji: null,
+        categories: add.category_ids.map(Number), kind: add.kind, card_theme: add.card_theme, card_emoji: null,
         tags: add.tags.split(',').map((x) => x.trim()).filter(Boolean).slice(0, 5).join(','), avatar
       });
-      setAdd({ title: '', link: '', description: '', category: '', kind: 'channel', tags: '', card_theme: 'violet' });
+      setAdd({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet' });
       setImageFile(null); setImagePreview('');
       await reloadEverything(); setTab('profile-publications');
       notify('Заявка отправлена на модерацию');
@@ -527,17 +527,19 @@ export default function App() {
         <label>Тип сообщества</label><div className="choice-row"><button type="button" className={add.kind === 'channel' ? 'chosen' : ''} onClick={() => setAdd({...add,kind:'channel'})}>Канал</button><button type="button" className={add.kind === 'group' ? 'chosen' : ''} onClick={() => setAdd({...add,kind:'group'})}>Группа / чат</button></div>
         <label>Ссылка Telegram</label><input required value={add.link} onChange={(e) => setAdd({...add,link:e.target.value})} placeholder="https://t.me/your_channel или @username"/>
         <label>Название</label><input required minLength={2} maxLength={80} value={add.title} onChange={(e) => setAdd({...add,title:e.target.value})} placeholder="Название канала или группы"/>
-        <label>Выбери категорию</label>
-        <div className="category-grid add-category-grid" role="group" aria-label="Выбор категории">
-          {categories.map((c,index)=>(
-            <button type="button" key={c.id} className={`category-tile ${add.category===String(c.id)?'category-tile-active':''}`} aria-pressed={add.category===String(c.id)} onClick={()=>setAdd({...add,category:String(c.id)})}>
+        <label>Выбери категории <small>от 1 до 3 · выбрано {add.category_ids.length}/3</small></label>
+        <div className="category-grid add-category-grid" role="group" aria-label="Выбор до трёх категорий">
+          {categories.map((c,index)=>{
+            const selected = add.category_ids.includes(Number(c.id));
+            const limitReached = add.category_ids.length >= 3 && !selected;
+            return <button type="button" key={c.id} disabled={limitReached} className={`category-tile ${selected?'category-tile-active':''}`} aria-pressed={selected} onClick={()=>setAdd(current=>({...current,category_ids:selected?current.category_ids.filter(id=>id!==Number(c.id)):[...current.category_ids,Number(c.id)]}))}>
               <span className={`category-symbol tone-${index%6}`}>{c.icon || '✦'}</span>
               <span><b>{c.title}</b><small>{fmt(c.groups)} сообществ</small></span>
-              <ChevronRight size={16}/>
-            </button>
-          ))}
+              {selected ? <Check size={17}/> : <ChevronRight size={16}/>}
+            </button>;
+          })}
         </div>
-        {!add.category && <small className="add-category-hint">Выбери одну категорию для публикации.</small>}
+        {!add.category_ids.length && <small className="add-category-hint">Выбери минимум одну категорию. Можно выбрать до трёх.</small>}
         <label>Выбери фон карточки</label>
         <div className="card-theme-picker" role="group" aria-label="Выбор фона карточки">
           {CARD_THEMES.map((theme) => <button type="button" key={theme.id} className={`card-theme-option card-theme-${theme.id} ${add.card_theme === theme.id ? 'chosen' : ''}`} aria-pressed={add.card_theme === theme.id} onClick={() => setAdd({ ...add, card_theme: theme.id })}><span className="card-theme-swatch"/><b>{theme.label}</b>{add.card_theme === theme.id && <Check size={14}/>}</button>)}
