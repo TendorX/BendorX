@@ -84,7 +84,6 @@ export default function App() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [showAllHomeCategories, setShowAllHomeCategories] = useState(false);
   const [homeSort, setHomeSort] = useState('votes');
-  const [voteConfirmIds, setVoteConfirmIds] = useState(() => new Set());
 
   const initData = tg?.initData || '';
   const telegramUser = tg?.initDataUnsafe?.user || null;
