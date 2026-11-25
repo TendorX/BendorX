@@ -49,6 +49,7 @@ export default function App() {
   const [promotionDuration, setPromotionDuration] = useState('3');
   const [media, setMedia] = useState({});
   const [me, setMe] = useState(null);
+  const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loaderMinimumDone, setLoaderMinimumDone] = useState(false);
   useEffect(() => {
@@ -219,12 +220,21 @@ export default function App() {
     setError('');
     let timeoutId;
     try {
-      // A stalled network/Supabase request must never leave the Mini App
-      // on its startup screen forever. Show a retryable error after 15s.
       await Promise.race([
         (async () => {
+          if (!initData) {
+            setSubscription({ subscribed: false, reason: 'telegram' });
+            setMe(null);
+            return;
+          }
+          const access = await api('check_subscription');
+          setSubscription(access || { subscribed: false });
+          if (!access?.subscribed) {
+            setMe(null);
+            return;
+          }
           await loadPublic();
-          if (initData) await loadMe();
+          await loadMe();
         })(),
         new Promise((_, reject) => {
           timeoutId = window.setTimeout(() => {
@@ -233,13 +243,14 @@ export default function App() {
         })
       ]);
     } catch (err) {
-      setError(err.message || 'Не удалось загрузить данные');
+      setSubscription({ subscribed: false, reason: 'error' });
+      setError(err.message || 'Не удалось проверить подписку');
     } finally {
       if (timeoutId) window.clearTimeout(timeoutId);
       setLoading(false);
       setRefreshing(false);
     }
-  }, [loadPublic, loadMe, initData]);
+  }, [api, loadPublic, loadMe, initData]);
 
   useEffect(() => {
     try { tg?.ready?.(); tg?.expand?.(); tg?.setHeaderColor?.('#111318'); tg?.setBackgroundColor?.('#111318'); } catch {}
@@ -636,6 +647,7 @@ export default function App() {
   );
 
   const body = tab === 'home' ? renderHome() : tab === 'catalog' ? renderCatalog() : tab === 'add' ? renderAdd() : tab === 'rating' ? renderRating() : tab === 'notifications' ? renderNotifications() : tab === 'admin' ? renderAdmin() : tab === 'profile-publications' ? renderMyPublications() : tab === 'profile-votes' ? renderMyVotes() : tab === 'profile-favorites' ? renderMyFavorites() : renderProfile();
+  const appContent = subscription?.subscribed ? body : <SubscriptionGate onCheck={() => refresh(true)} checking={refreshing} reason={subscription?.reason} error={error} />;
 
   return (
     <div className="app-shell">
@@ -643,7 +655,7 @@ export default function App() {
       {searchOpen && <div className="global-search"><Search size={18}/><input autoFocus value={query} onChange={(e)=>setQuery(e.target.value)} onKeyDown={(e)=>{if(e.key==='Enter'){setTab('catalog');loadPublic({query:e.target.value});setSearchOpen(false);}}} placeholder="Найти сообщество…"/><button onClick={()=>setSearchOpen(false)}><X size={17}/></button></div>}
       <main className="main-content">
         {error && <div className="error-banner"><span>{error}</span><button onClick={()=>refresh()}><RefreshCw size={15}/> Повторить</button></div>}
-        {loading || !loaderMinimumDone ? <BootLoader /> : body}
+        {loading || !loaderMinimumDone ? <BootLoader /> : appContent}
       </main>
       <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`} style={{'--nav-index': Math.max(0, nav.findIndex(([id]) => tab === id || (id === 'profile' && tab.startsWith('profile-'))))}} aria-label="Основная навигация"><span className="nav-active-indicator" aria-hidden="true"/>{nav.map(([id,Icon,label])=><button key={id} type="button" className={`nav-${id} ${(tab===id || (id==='profile' && tab.startsWith('profile-')))?'active':''} ${id==='add'?'add-nav':''}`} aria-label={label} aria-current={(tab===id || (id==='profile' && tab.startsWith('profile-')))?'page':undefined} onClick={()=>{if(id==='home')openHome();else if(id==='catalog')openCategories();else if(id==='profile'){setTab('profile');}else setTab(id);setMobileMenu(false);}}><span className="nav-icon-wrap"><Icon className="nav-icon" size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
       {toast && <div className="toast-message">{toast}</div>}
@@ -776,6 +788,24 @@ function BootLoader() {
 
 function EmptyState({ text }) { return <div className="empty-state"><span><Search size={22}/></span><p>{text}</p></div>; }
 function Metric({ icon: Icon, value, label }) { return <div className="metric"><span><Icon size={16}/></span><b>{value}</b><small>{label}</small></div>; }
+function SubscriptionGate({ onCheck, checking, reason, error }) {
+  const needsTelegram = reason === 'telegram';
+  return (
+    <section style={{minHeight:'58vh',display:'grid',placeItems:'center',padding:'24px 18px'}}>
+      <div style={{width:'100%',maxWidth:430,padding:26,borderRadius:24,background:'linear-gradient(145deg,#1b1d29,#12141c)',border:'1px solid rgba(157,130,255,.28)',boxShadow:'0 24px 70px rgba(0,0,0,.35)',textAlign:'center'}}>
+        <div style={{width:68,height:68,margin:'0 auto 18px',display:'grid',placeItems:'center',borderRadius:22,background:'rgba(130,98,255,.16)',color:'#b9a5ff'}}><ShieldCheck size={34}/></div>
+        <div style={{fontSize:11,fontWeight:800,letterSpacing:2,color:'#a995ff',marginBottom:9}}>BENDOR-X · ДОСТУП</div>
+        <h2 style={{fontSize:24,lineHeight:1.2,margin:'0 0 10px',color:'#fff'}}>Подпишись на наш канал</h2>
+        <p style={{fontSize:14,lineHeight:1.6,color:'#aeb0c0',margin:'0 0 22px'}}>Чтобы пользоваться Bendor-X, подпишись на официальный канал и нажми кнопку проверки.</p>
+        <a href="https://t.me/BendorX" target="_blank" rel="noreferrer" style={{display:'flex',justifyContent:'center',alignItems:'center',gap:9,width:'100%',boxSizing:'border-box',padding:'14px 18px',borderRadius:14,background:'linear-gradient(100deg,#7657e8,#9b70ff)',color:'#fff',fontWeight:800,textDecoration:'none',marginBottom:11}}><ExternalLink size={17}/> Подписаться на @BendorX</a>
+        <button type="button" onClick={onCheck} disabled={checking || needsTelegram} style={{width:'100%',padding:'14px 18px',borderRadius:14,border:'1px solid rgba(255,255,255,.14)',background:'rgba(255,255,255,.06)',color:'#fff',fontWeight:750,opacity:checking || needsTelegram ? .55 : 1,cursor:checking || needsTelegram ? 'default' : 'pointer'}}>{checking ? 'Проверяем подписку…' : 'Я подписался — проверить'}</button>
+        {needsTelegram && <p style={{fontSize:12,color:'#f0c879',margin:'14px 0 0'}}>Открой приложение через Telegram-бота, чтобы проверить аккаунт.</p>}
+        {error && <p style={{fontSize:12,color:'#ff9a9a',margin:'12px 0 0'}}>{error}</p>}
+      </div>
+    </section>
+  );
+}
+
 function TelegramGate() {
   const webApp = window.Telegram?.WebApp;
   const hashHasLaunchData = window.location.hash.includes('tgWebAppData');
