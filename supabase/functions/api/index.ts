@@ -298,6 +298,25 @@ Deno.serve(async (req: Request) => {
     // Telegram ID берётся только из проверенного initData.
     const tid: number = user.id;
 
+    // Membership is verified by Telegram for every protected API request.
+    const membershipResponse = await fetch(
+      `https://api.telegram.org/bot${verifiedBotToken}/getChatMember?chat_id=%40BendorX&user_id=${tid}`,
+    );
+    const membershipPayload = await membershipResponse.json().catch(() => null);
+    if (!membershipResponse.ok || membershipPayload?.ok !== true) {
+      console.error("Telegram membership check failed", membershipPayload?.error_code ?? membershipResponse.status);
+      throw new ApiError(502, "Не удалось проверить подписку. Попробуйте ещё раз позже.");
+    }
+    const member = membershipPayload.result;
+    const subscribed = member?.status === "creator" ||
+      member?.status === "administrator" ||
+      member?.status === "member" ||
+      (member?.status === "restricted" && member?.is_member === true);
+
+    if (body.action !== "check_subscription" && !subscribed) {
+      throw new ApiError(403, "Для доступа к Bendor-X подпишись на канал @BendorX.");
+    }
+
     const db = createClient(supabaseUrl, serviceKey, {
       auth: {
         persistSession: false,
@@ -420,6 +439,11 @@ Deno.serve(async (req: Request) => {
     let data: unknown;
 
     switch (body.action) {
+      case "check_subscription": {
+        data = { subscribed, channel: "@BendorX" };
+        break;
+      }
+
       case "me": {
         data = await rpc("tx_me", {
           p_tid: tid,
