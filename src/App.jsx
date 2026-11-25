@@ -698,7 +698,7 @@ export default function App() {
           </div>
           <div className="queue-detail-grid">
             <div><small>Категория</small><b>{selectedQueueItem.category || 'Не указана'}</b></div>
-            <div><small>Тип сообщества</small><b>{selectedQueueItem.kind === 'channel' ? 'Канал' : selectedQueueItem.kind === 'supergroup' ? 'Супергруппа' : 'Группа / чат'}</b></div>
+            <div><small>Тип сообщества</small><b>{['channel','telegram_channel'].includes(String(selectedQueueItem.kind || '').toLowerCase()) ? 'Канал' : ['supergroup','group','chat'].includes(String(selectedQueueItem.kind || '').toLowerCase()) ? 'Группа / чат' : 'Тип не указан'}</b></div>
             <div><small>Отправлено</small><b>{selectedQueueItem.at ? new Date(selectedQueueItem.at).toLocaleString('ru-RU') : 'Дата не указана'}</b></div>
             <div><small>Теги</small><b>{Array.isArray(selectedQueueItem.tags) && selectedQueueItem.tags.length ? selectedQueueItem.tags.join(', ') : 'Нет тегов'}</b></div>
           </div>
