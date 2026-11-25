@@ -501,11 +501,15 @@ Deno.serve(async (req: Request) => {
         const cardTheme = ALLOWED_CARD_THEMES.has(String(body.card_theme)) ? String(body.card_theme) : 'violet';
         const cardEmoji = ALLOWED_CARD_EMOJIS.has(String(body.card_emoji)) ? String(body.card_emoji) : '✨';
 
+        // Не даём одному пустому/устаревшему значению категории
+        // прервать отправку всей заявки. Принимаем только реальные положительные ID.
         const categories = Array.isArray(body.categories)
-          ? [...new Set(body.categories.map((value) => positiveInteger(value)).filter((value) => value > 0))]
+          ? [...new Set(body.categories
+              .map((value: unknown) => Number(value))
+              .filter((value: number) => Number.isSafeInteger(value) && value > 0))]
           : [];
         if (categories.length < 1 || categories.length > 3) {
-          throw new ApiError(400, "Выберите от 1 до 3 категорий");
+          throw new ApiError(400, "Выбери от 1 до 3 действующих категорий и попробуй ещё раз.");
         }
 
         data = await rpc("tx_submit_multi", {
