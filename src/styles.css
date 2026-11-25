@@ -380,7 +380,8 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
   opacity:0;transform:translateY(7px);animation:bx-gold-tagline .65s ease-out 1.02s forwards;
 }
 .boot-loader-track{
-  position:absolute;left:50%;bottom:max(11vh,52px);transform:translateX(-50%);
+  position:absolute;left:0;right:0;margin-left:auto;margin-right:auto;
+  bottom:max(11vh,52px);
   width:min(58vw,245px);height:3px;overflow:hidden;border-radius:10px;
   background:rgba(232,189,85,.16);box-shadow:0 0 9px rgba(232,189,85,.08);
   opacity:0;animation:bx-gold-tagline .45s ease-out 1.18s forwards;
