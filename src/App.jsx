@@ -84,6 +84,7 @@ export default function App() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [showAllHomeCategories, setShowAllHomeCategories] = useState(false);
   const [homeSort, setHomeSort] = useState('votes');
+  const [voteConfirmIds, setVoteConfirmIds] = useState(() => new Set());
 
   const initData = tg?.initData || '';
   const telegramUser = tg?.initDataUnsafe?.user || null;
@@ -275,10 +276,29 @@ export default function App() {
   const changeVote = async (id) => {
     try {
       if (!initData) return notify('Войди через Telegram, чтобы голосовать.');
-      if (votedIds.has(Number(id))) await api('unvote', { id });
-      else await api('vote', { id });
+      const removingVote = votedIds.has(Number(id));
+      if (removingVote) {
+        await api('unvote', { id });
+        setVoteConfirmIds((current) => {
+          const next = new Set(current);
+          next.delete(Number(id));
+          return next;
+        });
+      } else {
+        await api('vote', { id });
+      }
       await reloadEverything();
-      notify(votedIds.has(Number(id)) ? 'Голос отменён' : 'Голос учтён');
+      if (!removingVote) {
+        const voteId = Number(id);
+        setVoteConfirmIds((current) => new Set(current).add(voteId));
+        window.setTimeout(() => {
+          setVoteConfirmIds((current) => {
+            const next = new Set(current);
+            next.delete(voteId);
+            return next;
+          });
+        }, 1500);
+      }
     } catch (err) { notify(err.message); }
   };
 
@@ -414,8 +434,8 @@ export default function App() {
       </button>
       <div className="community-actions">
         <button className={`icon-button favorite-button ${favoriteIds.has(Number(item.id)) ? 'favorite-selected' : ''}`} title="Избранное" onClick={() => changeFavorite(item.id)}><Bookmark size={17}/></button>
-        <button className={`vote-button ${votedIds.has(Number(item.id)) ? 'voted' : ''}`} onClick={() => { if (!votedIds.has(Number(item.id))) changeVote(item.id); }}>
-          {votedIds.has(Number(item.id)) ? <Check size={15}/> : <ThumbsUp size={15}/>} {votedIds.has(Number(item.id)) ? 'Голос учтён' : 'Голос'}
+        <button className={`vote-button ${voteConfirmIds.has(Number(item.id)) ? 'vote-confirmed' : ''}`} onClick={() => { if (!votedIds.has(Number(item.id))) changeVote(item.id); }}>
+          {voteConfirmIds.has(Number(item.id)) ? <Check size={15}/> : <ThumbsUp size={15}/>} {voteConfirmIds.has(Number(item.id)) ? 'Голос засчитан' : 'Голос'}
         </button>
       </div>
     </article>
