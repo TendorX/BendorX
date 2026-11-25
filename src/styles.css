@@ -718,3 +718,28 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
  .community-card[class*="card-theme-"] .community-actions .favorite-button{width:37px;height:37px;min-width:37px}
  .community-card[class*="card-theme-"] .community-actions .vote-button{min-height:37px;padding:0 14px}
 }
+
+
+/* Unified warm-yellow active state for every bottom navigation tab. */
+.bottom-nav button:not(.add-nav).active .nav-icon-wrap,
+.bottom-nav button:not(.add-nav):active .nav-icon-wrap {
+  background:linear-gradient(145deg,#ffe879 0%,#ffc928 52%,#f2a900 100%) !important;
+  color:#302308 !important;
+  border:1px solid rgba(255,218,91,.7) !important;
+  box-shadow:0 7px 21px rgba(255,196,35,.32),inset 0 1px 0 rgba(255,255,255,.5) !important;
+}
+.bottom-nav button:not(.add-nav).active .nav-icon,
+.bottom-nav button:not(.add-nav):active .nav-icon {
+  color:#302308 !important;
+  filter:drop-shadow(0 1px 1px rgba(255,255,255,.2));
+}
+.bottom-nav button:not(.add-nav).active,
+.bottom-nav button:not(.add-nav):active {
+  color:#ffd45a !important;
+}
+.bottom-nav button:not(.add-nav):active .nav-icon-wrap {
+  transform:translateY(-1px) scale(.97);
+}
+.bottom-nav button .nav-icon-wrap {
+  transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .16s ease;
+}
