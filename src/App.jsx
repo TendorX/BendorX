@@ -276,29 +276,20 @@ export default function App() {
   const changeVote = async (id) => {
     try {
       if (!initData) return notify('Войди через Telegram, чтобы голосовать.');
-      const removingVote = votedIds.has(Number(id));
-      if (removingVote) {
-        await api('unvote', { id });
-        setVoteConfirmIds((current) => {
-          const next = new Set(current);
-          next.delete(Number(id));
-          return next;
-        });
-      } else {
-        await api('vote', { id });
-      }
+      const voteId = Number(id);
+      const removingVote = votedIds.has(voteId);
+      await api(removingVote ? 'unvote' : 'vote', { id });
+      // Update the local profile immediately; the vote itself is already saved by the API.
+      setMe((current) => {
+        if (!current) return current;
+        const currentVotes = (current.voted || []).map(Number);
+        const nextVotes = removingVote
+          ? currentVotes.filter((value) => value !== voteId)
+          : [...new Set([...currentVotes, voteId])];
+        return { ...current, voted: nextVotes };
+      });
       await reloadEverything();
-      if (!removingVote) {
-        const voteId = Number(id);
-        setVoteConfirmIds((current) => new Set(current).add(voteId));
-        window.setTimeout(() => {
-          setVoteConfirmIds((current) => {
-            const next = new Set(current);
-            next.delete(voteId);
-            return next;
-          });
-        }, 1500);
-      }
+      notify(removingVote ? 'Голос отменён' : 'Вы проголосовали');
     } catch (err) { notify(err.message); }
   };
 
@@ -434,9 +425,9 @@ export default function App() {
       </button>
       <div className="community-actions">
         <button className={`icon-button favorite-button ${favoriteIds.has(Number(item.id)) ? 'favorite-selected' : ''}`} title="Избранное" onClick={() => changeFavorite(item.id)}><Bookmark size={17}/></button>
-        <button className={`vote-button ${voteConfirmIds.has(Number(item.id)) ? 'vote-confirmed' : ''}`} onClick={() => { if (!votedIds.has(Number(item.id))) changeVote(item.id); }}>
-          {voteConfirmIds.has(Number(item.id)) ? <Check size={15}/> : <ThumbsUp size={15}/>} {voteConfirmIds.has(Number(item.id)) ? 'Голос засчитан' : 'Голос'}
-        </button>
+        {votedIds.has(Number(item.id))
+          ? <span className="vote-button vote-confirmed" role="status"><Check size={15}/> Вы проголосовали</span>
+          : <button className="vote-button" onClick={() => changeVote(item.id)}><ThumbsUp size={15}/> Голос</button>}
       </div>
     </article>
   );
