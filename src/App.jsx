@@ -288,7 +288,6 @@ export default function App() {
           : [...new Set([...currentVotes, voteId])];
         return { ...current, voted: nextVotes };
       });
-      await reloadEverything();
       if (removingVote) {
         setVoteNoticeIds((current) => {
           const next = new Set(current);
@@ -297,6 +296,7 @@ export default function App() {
         });
         notify('Голос отменён');
       } else {
+        // Show the red confirmation immediately after the vote API succeeds.
         setVoteNoticeIds((current) => new Set([...current, voteId]));
         window.setTimeout(() => {
           setVoteNoticeIds((current) => {
@@ -306,6 +306,7 @@ export default function App() {
           });
         }, 1000);
       }
+      await reloadEverything();
     } catch (err) { notify(err.message); }
   };
 
