@@ -501,12 +501,19 @@ Deno.serve(async (req: Request) => {
         const cardTheme = ALLOWED_CARD_THEMES.has(String(body.card_theme)) ? String(body.card_theme) : 'violet';
         const cardEmoji = ALLOWED_CARD_EMOJIS.has(String(body.card_emoji)) ? String(body.card_emoji) : '✨';
 
-        data = await rpc("tx_submit", {
+        const categories = Array.isArray(body.categories)
+          ? [...new Set(body.categories.map((value) => positiveInteger(value)).filter((value) => value > 0))]
+          : [];
+        if (categories.length < 1 || categories.length > 3) {
+          throw new ApiError(400, "Выберите от 1 до 3 категорий");
+        }
+
+        data = await rpc("tx_submit_multi", {
           p_tid: tid,
           p_username: cleanText(body.username, 40),
           p_title: cleanText(body.title, 80),
           p_desc: cleanText(body.description, 500),
-          p_cat: positiveInteger(body.category),
+          p_cats: categories,
           p_tags: tags,
           p_kind: cleanText(body.kind, 12),
         });
