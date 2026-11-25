@@ -51,6 +51,11 @@ export default function App() {
   const [me, setMe] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loaderAnimationDone, setLoaderAnimationDone] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setLoaderAnimationDone(true), 2200);
+    return () => window.clearTimeout(timer);
+  }, []);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
@@ -650,7 +655,8 @@ export default function App() {
       {searchOpen && <div className="global-search"><Search size={18}/><input autoFocus value={query} onChange={(e)=>setQuery(e.target.value)} onKeyDown={(e)=>{if(e.key==='Enter'){setTab('catalog');loadPublic({query:e.target.value});setSearchOpen(false);}}} placeholder="Найти сообщество…"/><button onClick={()=>setSearchOpen(false)}><X size={17}/></button></div>}
       <main className="main-content">
         {error && <div className="error-banner"><span>{error}</span><button onClick={()=>refresh()}><RefreshCw size={15}/> Повторить</button></div>}
-        {loading ? <BootLoader /> : appContent}
+        {appContent}
+        {(loading || !loaderAnimationDone) && <BootLoader />}
       </main>
       <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`} style={{'--nav-index': Math.max(0, nav.findIndex(([id]) => tab === id || (id === 'profile' && tab.startsWith('profile-'))))}} aria-label="Основная навигация"><span className="nav-active-indicator" aria-hidden="true"/>{nav.map(([id,Icon,label])=><button key={id} type="button" className={`nav-${id} ${(tab===id || (id==='profile' && tab.startsWith('profile-')))?'active':''} ${id==='add'?'add-nav':''}`} aria-label={label} aria-current={(tab===id || (id==='profile' && tab.startsWith('profile-')))?'page':undefined} onClick={()=>{if(id==='home')openHome();else if(id==='catalog')openCategories();else if(id==='profile'){setTab('profile');}else setTab(id);setMobileMenu(false);}}><span className="nav-icon-wrap"><Icon className="nav-icon" size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
       {toast && <div className="toast-message">{toast}</div>}
