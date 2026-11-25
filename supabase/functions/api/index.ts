@@ -634,12 +634,87 @@ Deno.serve(async (req: Request) => {
       }
 
       case "moderate": {
+        const applicationId = positiveInteger(body.id);
+        const moderationStatus = cleanText(body.status, 12).toLowerCase();
+        const moderationReason = cleanText(body.reason, 300);
+
         await rpc("tx_moderate", {
           p_actor: tid,
-          p_id: positiveInteger(body.id),
-          p_status: cleanText(body.status, 12),
-          p_reason: cleanText(body.reason, 300),
+          p_id: applicationId,
+          p_status: moderationStatus,
+          p_reason: moderationReason,
         });
+
+        // Уведомление в тот же закрытый чат отправляем только после
+        // успешного изменения статуса заявки. Ошибка Telegram не отменяет модерацию.
+        const adminChatId = (Deno.env.get("BENDORX_ADMIN_CHAT_ID") || "").trim();
+        if (adminChatId && ["approved", "rejected"].includes(moderationStatus)) {
+          try {
+            const [{ data: moderatedCommunity, error: communityError },
+              { data: moderatorProfile, error: moderatorError }] = await Promise.all([
+              db.from("communities")
+                .select("id,title,kind")
+                .eq("id", applicationId)
+                .maybeSingle(),
+              db.from("profiles")
+                .select("role")
+                .eq("tid", tid)
+                .maybeSingle(),
+            ]);
+
+            if (communityError || !moderatedCommunity) {
+              console.error("Moderation notification: community lookup failed", communityError?.code ?? "NOT_FOUND");
+            } else if (moderatorError) {
+              console.error("Moderation notification: moderator lookup failed", moderatorError.code);
+            } else {
+              const role = String(moderatorProfile?.role || "").toLowerCase();
+              const roleLabel = ["master_admin", "admin", "administrator"].includes(role)
+                ? "администратор"
+                : "модератор";
+              const moderatorLabel = [
+                displayName,
+                user.username ? `@${cleanText(user.username, 32)}` : "",
+              ].filter(Boolean).join(" ");
+              const kindLabel = moderatedCommunity.kind === "channel"
+                ? "канал"
+                : "группа / чат";
+              const message = moderationStatus === "approved"
+                ? [
+                    "✅ ЗАЯВКА ОДОБРЕНА",
+                    "",
+                    `Заявка №: ${moderatedCommunity.id}`,
+                    `Название: ${cleanText(moderatedCommunity.title, 80)}`,
+                    `Тип: ${kindLabel}`,
+                    `Одобрил: ${roleLabel} ${moderatorLabel}`,
+                  ].join("\\n")
+                : [
+                    "❌ ЗАЯВКА ОТКЛОНЕНА",
+                    "",
+                    `Заявка №: ${moderatedCommunity.id}`,
+                    `Название: ${cleanText(moderatedCommunity.title, 80)}`,
+                    `Тип: ${kindLabel}`,
+                    `Отклонил: ${roleLabel} ${moderatorLabel}`,
+                    `Причина: ${moderationReason || "не указана"}`,
+                  ].join("\\n");
+
+              const telegramResponse = await fetch(`https://api.telegram.org/bot${verifiedBotToken}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  chat_id: adminChatId,
+                  text: message,
+                  disable_web_page_preview: true,
+                }),
+              });
+              const telegramResult = await telegramResponse.json();
+              if (!telegramResponse.ok || telegramResult?.ok !== true) {
+                console.error("Moderation Telegram notification failed", telegramResult?.error_code ?? telegramResponse.status);
+              }
+            }
+          } catch (notificationError) {
+            console.error("Moderation Telegram notification failed", notificationError);
+          }
+        }
 
         data = true;
         break;
