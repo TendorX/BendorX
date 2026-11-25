@@ -414,9 +414,9 @@ export default function App() {
       </button>
       <div className="community-actions">
         <button className={`icon-button favorite-button ${favoriteIds.has(Number(item.id)) ? 'favorite-selected' : ''}`} title="Избранное" onClick={() => changeFavorite(item.id)}><Bookmark size={17}/></button>
-        {!votedIds.has(Number(item.id)) && <button className="vote-button" onClick={() => changeVote(item.id)}>
-          <ThumbsUp size={15}/> Голос
-        </button>}
+        <button className={`vote-button ${votedIds.has(Number(item.id)) ? 'voted' : ''}`} onClick={() => { if (!votedIds.has(Number(item.id))) changeVote(item.id); }}>
+          {votedIds.has(Number(item.id)) ? <Check size={15}/> : <ThumbsUp size={15}/>} {votedIds.has(Number(item.id)) ? 'Голос учтён' : 'Голос'}
+        </button>
       </div>
     </article>
   );
