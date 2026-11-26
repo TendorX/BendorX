@@ -406,7 +406,7 @@ export default function App() {
   };
 
   const adminDelete = async (item) => {
-    if (!window.confirm(`Удалить «${item.title}»? Запись можно будет восстановить.`)) return;
+    if (!window.confirm(`Полностью удалить «${item.title}»? Запись, голоса и избранное будут удалены без возможности восстановления. После этого сообщество можно будет подать заново.`)) return;
     try { await api('admin_delete', { id: item.id }); await reloadEverything(); notify('Сообщество удалено'); }
     catch (err) { notify(err.message); }
   };
