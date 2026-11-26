@@ -752,17 +752,49 @@ Deno.serve(async (req: Request) => {
         break;
       }
       case "admin_delete": {
-        await rpc("tx_admin_delete", { p_actor: tid, p_id: positiveInteger(body.id) });
+        const { data: actor, error: actorError } = await db
+          .from("profiles").select("role,banned").eq("tid", tid).maybeSingle();
+        if (actorError || !["master_admin", "admin", "moderator"].includes(actor?.role) || actor?.banned) {
+          throw new ApiError(403, "Недостаточно прав");
+        }
+        const communityId = positiveInteger(body.id);
+        const { data: target, error: targetError } = await db
+          .from("communities").select("id,title,username").eq("id", communityId).maybeSingle();
+        if (targetError) throw new ApiError(500, "Не удалось найти сообщество");
+        if (!target) throw new ApiError(404, "Сообщество уже удалено");
+        const { error: deleteError } = await db.from("communities").delete().eq("id", communityId);
+        if (deleteError) {
+          console.error("Permanent community delete failed:", deleteError.code);
+          throw new ApiError(500, "Не удалось полностью удалить сообщество. Проверьте связи в базе данных.");
+        }
+        const { error: auditError } = await db.from("audit_log").insert({
+          actor_tid: tid, action: "community_permanent_delete",
+          target: "community:" + communityId,
+          details: { title: target.title, username: target.username }
+        });
+        if (auditError) console.error("Permanent delete audit write failed:", auditError.code);
         data = true;
         break;
       }
       case "admin_restore": {
-        await rpc("tx_admin_restore", { p_actor: tid, p_id: positiveInteger(body.id) });
-        data = true;
-        break;
+        throw new ApiError(410, "Восстановление удалённых сообществ отключено: удаление теперь окончательное.");
       }
       case "admin_list": {
-        data = await rpc("tx_admin_communities", { p_actor: tid, p_deleted: body.deleted === true });
+        const deleted = body.deleted === true;
+        const listed = await rpc("tx_admin_communities", { p_actor: tid, p_deleted: deleted });
+        if (deleted && Array.isArray(listed) && listed.length) {
+          const ids = listed.map((item: any) => positiveInteger(item.id)).filter(Boolean);
+          if (ids.length) {
+            const { error: purgeError } = await db.from("communities").delete().in("id", ids);
+            if (purgeError) {
+              console.error("Legacy deleted communities purge failed:", purgeError.code);
+              throw new ApiError(500, "Не удалось очистить старые удалённые сообщества.");
+            }
+          }
+          data = [];
+        } else {
+          data = listed;
+        }
         break;
       }
 
