@@ -87,9 +87,9 @@ begin
 end;
 $$;
 
-revoke all on function public.tx_submit_multi(bigint, text, text, text, integer[], text[], text[])
+revoke all on function public.tx_submit_multi(bigint, text, text, text, integer[], text[], text)
   from public, anon, authenticated;
-grant execute on function public.tx_submit_multi(bigint, text, text, text, integer[], text[], text[])
+grant execute on function public.tx_submit_multi(bigint, text, text, text, integer[], text[], text)
   to service_role;
 
 commit;
