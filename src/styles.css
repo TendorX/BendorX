@@ -891,3 +891,86 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
  .pub-chart-date{font-size:7px}
  .pub-votes-copy p{display:none}
 }
+
+
+/* My publications — restore the dark Bendor-X card styling */
+.my-pubs {
+  display: grid;
+  gap: 11px;
+  width: 100%;
+}
+.my-pubs .my-pub-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin: 0;
+  padding: 15px 16px;
+  border: 1px solid rgba(255,255,255,.085);
+  border-radius: 16px;
+  background: linear-gradient(115deg, #20232d 0%, #191c24 100%);
+  color: #f3f4f6;
+  text-align: left;
+  box-shadow: 0 8px 22px rgba(0,0,0,.12);
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+.my-pubs .my-pub-button:active {
+  transform: scale(.99);
+  background: linear-gradient(115deg, #25283a 0%, #1b1e29 100%);
+}
+.my-pubs .my-pub-button:hover {
+  border-color: rgba(139,124,255,.38);
+}
+.my-pubs .my-pub-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 6px;
+}
+.my-pubs .my-pub-main b {
+  display: block;
+  overflow: hidden;
+  color: #f4f4fa;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.my-pubs .my-pub-main small {
+  color: #9298a7;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.my-pubs .status {
+  flex: none;
+  padding: 6px 9px;
+  border: 1px solid currentColor;
+  border-color: rgba(255,255,255,.07);
+  border-radius: 9px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.my-pubs .my-pub-chevron {
+  flex: none;
+  color: #777e91;
+}
+@media (max-width: 420px) {
+  .my-pubs .my-pub-button {
+    gap: 8px;
+    padding: 13px 11px;
+  }
+  .my-pubs .my-pub-main b {
+    font-size: 12px;
+  }
+  .my-pubs .status {
+    padding: 5px 7px;
+    font-size: 8px;
+  }
+}
