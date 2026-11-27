@@ -622,18 +622,18 @@ Deno.serve(async (req: Request) => {
             });
             if (pageResponse.ok) {
               const html = (await pageResponse.text()).slice(0, 2_000_000);
-              const metaTags = html.match(/<meta\\b[^>]*>/gi) || [];
+              const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
               let imageUrl = "";
               for (const tag of metaTags) {
-                if (!/property\\s*=\\s*["']og:image["']/i.test(tag) && !/name\\s*=\\s*["']twitter:image["']/i.test(tag)) continue;
-                imageUrl = tag.match(/content\\s*=\\s*["']([^"']+)["']/i)?.[1] || "";
+                if (!/property\s*=\s*["']og:image["']/i.test(tag) && !/name\s*=\s*["']twitter:image["']/i.test(tag)) continue;
+                imageUrl = tag.match(/content\s*=\s*["']([^"']+)["']/i)?.[1] || "";
                 if (imageUrl) break;
               }
               if (imageUrl) {
                 const absoluteImageUrl = new URL(imageUrl.replace(/&amp;/g, "&"), "https://t.me/").toString();
                 avatarData = await toDataUrl(
                   absoluteImageUrl,
-                  /^(?:cdn\\d*\\.)?(?:telesco\\.pe|cdn-telegram\\.org|telegram\\.org)$/i,
+                  /^(?:cdn\d*\.)?(?:telesco\.pe|cdn-telegram\.org|telegram\.org)$/i,
                 );
               }
             }
