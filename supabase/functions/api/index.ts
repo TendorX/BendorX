@@ -542,6 +542,74 @@ Deno.serve(async (req: Request) => {
         break;
       }
 
+      case "telegram_preview": {
+        await rpc("tx_rate_limit_consume", {
+          p_action: "telegram_preview",
+          p_actor: tid,
+          p_limit: 10,
+          p_window_seconds: 3600,
+        });
+
+        const username = cleanText(body.username, 32).replace(/^@/, "").toLowerCase();
+        if (!/^[a-z0-9_]{4,32}$/.test(username)) {
+          throw new ApiError(400, "Укажи корректный публичный username Telegram.");
+        }
+
+        const chatResponse = await fetch(
+          `https://api.telegram.org/bot${verifiedBotToken}/getChat?chat_id=${encodeURIComponent("@" + username)}`,
+        );
+        const chatPayload = await chatResponse.json().catch(() => null);
+        if (!chatResponse.ok || chatPayload?.ok !== true || !chatPayload?.result) {
+          console.warn("Telegram getChat failed", chatPayload?.error_code ?? chatResponse.status);
+          throw new ApiError(422, "Не удалось получить данные этого сообщества. Проверь ссылку: для некоторых закрытых чатов боту нужен доступ. Можно заполнить поля вручную.");
+        }
+
+        const chat = chatPayload.result;
+        if (!["channel", "group", "supergroup"].includes(String(chat.type))) {
+          throw new ApiError(422, "Эта ссылка ведёт не на канал или группу Telegram.");
+        }
+
+        let avatarData: string | null = null;
+        const photoFileId = chat.photo?.big_file_id || chat.photo?.small_file_id;
+        if (photoFileId) {
+          try {
+            const fileResponse = await fetch(
+              `https://api.telegram.org/bot${verifiedBotToken}/getFile?file_id=${encodeURIComponent(photoFileId)}`,
+            );
+            const filePayload = await fileResponse.json().catch(() => null);
+            const filePath = filePayload?.ok === true ? filePayload.result?.file_path : null;
+            const fileSize = Number(filePayload?.result?.file_size || 0);
+            if (filePath && (!fileSize || fileSize <= 2 * 1024 * 1024)) {
+              const imageResponse = await fetch(
+                `https://api.telegram.org/file/bot${verifiedBotToken}/${filePath}`,
+              );
+              const contentType = imageResponse.headers.get("content-type") || "image/jpeg";
+              if (imageResponse.ok && contentType.startsWith("image/")) {
+                const bytes = new Uint8Array(await imageResponse.arrayBuffer());
+                if (bytes.length <= 2 * 1024 * 1024) {
+                  let binary = "";
+                  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+                    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+                  }
+                  avatarData = `data:${contentType};base64,${btoa(binary)}`;
+                }
+              }
+            }
+          } catch (photoError) {
+            console.warn("Telegram chat photo download failed", photoError);
+          }
+        }
+
+        data = {
+          title: cleanText(chat.title || "", 80),
+          description: cleanText(chat.description || "", 500),
+          username: cleanText(chat.username || username, 32),
+          kind: chat.type === "channel" ? "channel" : "group",
+          avatar_data: avatarData,
+        };
+        break;
+      }
+
       case "submit": {
         const tags = String(body.tags ?? "")
           .split(",")
