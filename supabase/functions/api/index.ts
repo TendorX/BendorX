@@ -561,7 +561,7 @@ Deno.serve(async (req: Request) => {
         const chatPayload = await chatResponse.json().catch(() => null);
         if (!chatResponse.ok || chatPayload?.ok !== true || !chatPayload?.result) {
           console.warn("Telegram getChat failed", chatPayload?.error_code ?? chatResponse.status);
-          throw new ApiError(422, "Не удалось получить данные этого сообщества. Проверь ссылку: для некоторых закрытых чатов боту нужен доступ. Можно заполнить поля вручную.");
+          throw new ApiError(422, "Не удалось получить данные этого сообщества. Проверь публичную ссылку Telegram.");
         }
 
         const chat = chatPayload.result;
@@ -569,7 +569,31 @@ Deno.serve(async (req: Request) => {
           throw new ApiError(422, "Эта ссылка ведёт не на канал или группу Telegram.");
         }
 
+        // Telegram Bot API не всегда возвращает Chat.photo для публичных каналов.
+        // Сначала пробуем штатный getFile, затем читаем og:image публичной страницы t.me.
         let avatarData: string | null = null;
+        const toDataUrl = async (imageUrl: string, allowedHosts?: RegExp): Promise<string | null> => {
+          try {
+            const parsed = new URL(imageUrl);
+            if (parsed.protocol !== "https:" || (allowedHosts && !allowedHosts.test(parsed.hostname))) return null;
+            const imageResponse = await fetch(parsed.toString(), { signal: AbortSignal.timeout(10000) });
+            const contentType = imageResponse.headers.get("content-type") || "";
+            if (!imageResponse.ok || !contentType.toLowerCase().startsWith("image/")) return null;
+            const declaredLength = Number(imageResponse.headers.get("content-length") || 0);
+            if (declaredLength > 2 * 1024 * 1024) return null;
+            const bytes = new Uint8Array(await imageResponse.arrayBuffer());
+            if (!bytes.length || bytes.length > 2 * 1024 * 1024) return null;
+            let binary = "";
+            for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+              binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+            }
+            return `data:${contentType.split(";")[0]};base64,${btoa(binary)}`;
+          } catch (imageError) {
+            console.warn("Telegram avatar image fetch failed", imageError);
+            return null;
+          }
+        };
+
         const photoFileId = chat.photo?.big_file_id || chat.photo?.small_file_id;
         if (photoFileId) {
           try {
@@ -580,23 +604,41 @@ Deno.serve(async (req: Request) => {
             const filePath = filePayload?.ok === true ? filePayload.result?.file_path : null;
             const fileSize = Number(filePayload?.result?.file_size || 0);
             if (filePath && (!fileSize || fileSize <= 2 * 1024 * 1024)) {
-              const imageResponse = await fetch(
+              avatarData = await toDataUrl(
                 `https://api.telegram.org/file/bot${verifiedBotToken}/${filePath}`,
               );
-              const contentType = imageResponse.headers.get("content-type") || "image/jpeg";
-              if (imageResponse.ok && contentType.startsWith("image/")) {
-                const bytes = new Uint8Array(await imageResponse.arrayBuffer());
-                if (bytes.length <= 2 * 1024 * 1024) {
-                  let binary = "";
-                  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
-                    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
-                  }
-                  avatarData = `data:${contentType};base64,${btoa(binary)}`;
-                }
-              }
             }
           } catch (photoError) {
-            console.warn("Telegram chat photo download failed", photoError);
+            console.warn("Telegram Bot API photo download failed", photoError);
+          }
+        }
+
+        // Fallback: публичная страница Telegram обычно содержит актуальный аватар в og:image.
+        if (!avatarData) {
+          try {
+            const pageResponse = await fetch(`https://t.me/s/${encodeURIComponent(username)}`, {
+              headers: { "User-Agent": "Mozilla/5.0 (compatible; BendorX/1.0)" },
+              signal: AbortSignal.timeout(10000),
+            });
+            if (pageResponse.ok) {
+              const html = (await pageResponse.text()).slice(0, 2_000_000);
+              const metaTags = html.match(/<meta\\b[^>]*>/gi) || [];
+              let imageUrl = "";
+              for (const tag of metaTags) {
+                if (!/property\\s*=\\s*["']og:image["']/i.test(tag) && !/name\\s*=\\s*["']twitter:image["']/i.test(tag)) continue;
+                imageUrl = tag.match(/content\\s*=\\s*["']([^"']+)["']/i)?.[1] || "";
+                if (imageUrl) break;
+              }
+              if (imageUrl) {
+                const absoluteImageUrl = new URL(imageUrl.replace(/&amp;/g, "&"), "https://t.me/").toString();
+                avatarData = await toDataUrl(
+                  absoluteImageUrl,
+                  /^(?:cdn\\d*\\.)?(?:telesco\\.pe|cdn-telegram\\.org|telegram\\.org)$/i,
+                );
+              }
+            }
+          } catch (previewError) {
+            console.warn("Telegram public page avatar fallback failed", previewError);
           }
         }
 
