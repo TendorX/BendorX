@@ -20,42 +20,6 @@ const STATUS = {
   rejected: ['Отклонено', 'rejected'], changes: ['Нужны исправления', 'changes'],
   hidden: ['Скрыто', 'hidden'], blocked: ['Заблокировано', 'blocked'], draft: ['Черновик', 'draft']
 };
-const CARD_FRAMES = [{id:'none',label:'Без рамки'},{id:'botanical',label:'Зелёный орнамент'},{id:'claws',label:'Когти'},{id:'thorns',label:'Шипы'},{id:'chain',label:'Цепи'},{id:'royal',label:'Орнамент'}];
-const CardFrameArt = ({frame}) => {
- if (!frame || frame === 'none' || frame === 'botanical') return null;
- const metal = '#c9c4d8';
- const gold = '#e5c477';
- return <svg className={'card-frame-art card-frame-art-' + frame} viewBox='0 0 400 180' preserveAspectRatio='none' aria-hidden='true'>
-  <defs>
-   <linearGradient id='frame-metal' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stopColor='#fff'/><stop offset='.48' stopColor={metal}/><stop offset='1' stopColor='#777184'/></linearGradient>
-   <linearGradient id='frame-gold' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stopColor='#fff0bd'/><stop offset='.5' stopColor={gold}/><stop offset='1' stopColor='#9b7137'/></linearGradient>
-  </defs>
-  {frame === 'claws' && <g fill='none' strokeLinecap='round' strokeLinejoin='round'>
-   {[18,91,164,237,310].map((x,i)=><g key={'ct'+i}><path d={`M${x} 5 Q${x+14} 17 ${x+5} 34 M${x+12} 3 Q${x+26} 16 ${x+17} 32 M${x+24} 5 Q${x+38} 18 ${x+29} 34`} stroke='#08090e' strokeWidth='8'/><path d={`M${x} 5 Q${x+14} 17 ${x+5} 34 M${x+12} 3 Q${x+26} 16 ${x+17} 32 M${x+24} 5 Q${x+38} 18 ${x+29} 34`} stroke='url(#frame-metal)' strokeWidth='3.2'/></g>)}
-   {[18,91,164,237,310].map((x,i)=><g key={'cb'+i}><path d={`M${x} 175 Q${x+14} 163 ${x+5} 146 M${x+12} 177 Q${x+26} 164 ${x+17} 148 M${x+24} 175 Q${x+38} 162 ${x+29} 146`} stroke='#08090e' strokeWidth='8'/><path d={`M${x} 175 Q${x+14} 163 ${x+5} 146 M${x+12} 177 Q${x+26} 164 ${x+17} 148 M${x+24} 175 Q${x+38} 162 ${x+29} 146`} stroke='url(#frame-metal)' strokeWidth='3.2'/></g>)}
-   {[25,82,139].map((y,i)=><g key={'cl'+i}><path d={`M5 ${y} Q18 ${y+12} 34 ${y+5} M3 ${y+12} Q17 ${y+24} 32 ${y+17} M5 ${y+24} Q18 ${y+36} 34 ${y+29}`} stroke='#08090e' strokeWidth='8'/><path d={`M5 ${y} Q18 ${y+12} 34 ${y+5} M3 ${y+12} Q17 ${y+24} 32 ${y+17} M5 ${y+24} Q18 ${y+36} 34 ${y+29}`} stroke='url(#frame-metal)' strokeWidth='3.2'/></g>)}
-   {[25,82,139].map((y,i)=><g key={'cr'+i}><path d={`M395 ${y} Q382 ${y+12} 366 ${y+5} M397 ${y+12} Q383 ${y+24} 368 ${y+17} M395 ${y+24} Q382 ${y+36} 366 ${y+29}`} stroke='#08090e' strokeWidth='8'/><path d={`M395 ${y} Q382 ${y+12} 366 ${y+5} M397 ${y+12} Q383 ${y+24} 368 ${y+17} M395 ${y+24} Q382 ${y+36} 366 ${y+29}`} stroke='url(#frame-metal)' strokeWidth='3.2'/></g>)}
-  </g>}
-  {frame === 'thorns' && <g fill='none' strokeLinecap='round' strokeLinejoin='round'>
-   <path d='M5 18 C55 3 80 31 120 17 S190 4 230 18 S310 31 350 16 S380 7 395 18 L382 45 C397 70 368 100 383 128 L395 162 C350 177 320 148 280 163 S210 177 170 162 S90 148 50 164 L5 162 L18 132 C3 105 32 76 17 48 Z' stroke='#08100c' strokeWidth='9'/>
-   <path d='M5 18 C55 3 80 31 120 17 S190 4 230 18 S310 31 350 16 S380 7 395 18 L382 45 C397 70 368 100 383 128 L395 162 C350 177 320 148 280 163 S210 177 170 162 S90 148 50 164 L5 162 L18 132 C3 105 32 76 17 48 Z' stroke='#91bd83' strokeWidth='3'/>
-   {Array.from({length:10},(_,i)=><g key={i}><path d={`M${28+i*38} 15 l-9 -12 m9 12 l12 -10 M${28+i*38} 165 l-9 12 m9 -12 l12 10`} stroke='#c1d69a' strokeWidth='2.5'/></g>)}
-   {[28,67,106,145].map((y,i)=><g key={i}><path d={`M16 ${y} l-12 -9 m12 9 l-10 12 M384 ${y} l12 -9 m-12 9 l10 12`} stroke='#c1d69a' strokeWidth='2.5'/></g>)}
-  </g>}
-  {frame === 'chain' && <g fill='none' stroke='url(#frame-metal)' strokeWidth='3.2'>
-   {Array.from({length:15},(_,i)=><g key={'t'+i}><ellipse cx={14+i*26.5} cy='8' rx='12' ry='6' transform={`rotate(-8 ${14+i*26.5} 8)`}/><ellipse cx={14+i*26.5} cy='172' rx='12' ry='6' transform={`rotate(8 ${14+i*26.5} 172)`}/></g>)}
-   {Array.from({length:6},(_,i)=><g key={'s'+i}><ellipse cx='8' cy={18+i*29} rx='6' ry='12'/><ellipse cx='392' cy={18+i*29} rx='6' ry='12'/></g>)}
-   <path d='M8 8 H392 M8 172 H392 M8 8 V172 M392 8 V172' stroke='#090a0e' strokeWidth='8' opacity='.85'/>
-   <path d='M8 8 H392 M8 172 H392 M8 8 V172 M392 8 V172' stroke='url(#frame-metal)' strokeWidth='2'/>
-  </g>}
-  {frame === 'royal' && <g fill='none' stroke='url(#frame-gold)' strokeWidth='2.3' strokeLinecap='round'>
-   <rect x='7' y='7' width='386' height='166' rx='17' strokeDasharray='2 7'/>
-   <rect x='13' y='13' width='374' height='154' rx='13' strokeOpacity='.55'/>
-   <path d='M7 48 Q7 7 48 7 Q25 20 34 39 Q17 31 7 48 M393 48 Q393 7 352 7 Q375 20 366 39 Q383 31 393 48 M7 132 Q7 173 48 173 Q25 160 34 141 Q17 149 7 132 M393 132 Q393 173 352 173 Q375 160 366 141 Q383 149 393 132 M200 7 q-24 17 0 34 q24 -17 0 -34 M200 173 q-24 -17 0 -34 q24 17 0 34'/>
-   <path d='M58 7 q18 16 36 0 M142 7 q18 16 36 0 M222 7 q18 16 36 0 M306 7 q18 16 36 0 M58 173 q18 -16 36 0 M142 173 q18 -16 36 0 M222 173 q18 -16 36 0 M306 173 q18 -16 36 0'/>
-  </g>}
- </svg>;
-};
 const CARD_THEMES = [{"id":"violet","label":"Фиолетовый","a":"#30245f","b":"#7655d9"},{"id":"ocean","label":"Океан","a":"#123b59","b":"#1689a8"},{"id":"sunset","label":"Закат","a":"#642b42","b":"#d66b54"},{"id":"emerald","label":"Изумруд","a":"#124c43","b":"#229b76"},{"id":"ruby","label":"Рубин","a":"#5c2037","b":"#bd4564"},{"id":"gold","label":"Золото","a":"#59421e","b":"#bd8a36"},{"id":"blue","label":"Синий","a":"#1c3268","b":"#456ed0"},{"id":"midnight","label":"Ночь","a":"#252b42","b":"#59627e"}];
 
 function fmt(value) {
@@ -103,7 +67,7 @@ export default function App() {
   const [publicationStats, setPublicationStats] = useState(null);
   const [publicationStatsLoading, setPublicationStatsLoading] = useState(false);
   const [profilePage, setProfilePage] = useState('main');
-  const [add, setAdd] = useState({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_frame: 'none', card_emoji: null });
+  const [add, setAdd] = useState({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_emoji: null });
   const [addCategoriesOpen, setAddCategoriesOpen] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
@@ -438,10 +402,10 @@ export default function App() {
       const avatar = await uploadAvatar();
       await api('submit', {
         username, title: add.title.trim(), description: add.description.trim(),
-        categories: add.category_ids.map(Number), kind: add.kind, card_theme: add.card_theme, card_frame: add.card_frame, card_emoji: null,
+        categories: add.category_ids.map(Number), kind: add.kind, card_theme: add.card_theme, card_emoji: null,
         tags: add.tags.split(',').map((x) => x.trim()).filter(Boolean).slice(0, 5).join(','), avatar
       });
-      setAdd({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_frame: 'none', card_emoji: null });
+      setAdd({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_emoji: null });
       setAddCategoriesOpen(false);
       setImageFile(null); setImagePreview('');
       await reloadEverything(); setTab('profile-publications');
@@ -479,8 +443,7 @@ export default function App() {
   const avatarUrl = (item) => media[item.id] ? `${CFG.url}/storage/v1/object/public/community-media/${media[item.id]}` : '';
 
   const CommunityCard = ({ item, compact = false, badge = '' }) => (
-    <article className={`community-card ${compact ? 'compact' : ''} card-theme-${CARD_THEMES.some((theme) => theme.id === item.card_theme) ? item.card_theme : 'default'} card-frame-${CARD_FRAMES.some((frame) => frame.id === item.card_frame) ? item.card_frame : 'none'} ${item.card_emoji ? 'has-card-emoji' : ''}`}>
-      <CardFrameArt frame={item.card_frame}/>
+    <article className={`community-card ${compact ? 'compact' : ''} card-theme-${CARD_THEMES.some((theme) => theme.id === item.card_theme) ? item.card_theme : 'default'} ${item.card_emoji ? 'has-card-emoji' : ''}`}>
       {item.card_emoji && <div className="community-emoji-pattern" aria-hidden="true">{Array.from({length:12},(_,i)=><span key={i} className={`emoji-mark emoji-mark-${i+1}`}>{item.card_emoji}</span>)}</div>}
       <button className="community-main" onClick={() => openCommunity(item)}>
         {avatarUrl(item) ? <img className="avatar" src={avatarUrl(item)} alt="" /> : <div className="avatar fallback">{(item.title || '?').slice(0, 1).toUpperCase()}</div>}
@@ -606,14 +569,7 @@ export default function App() {
         <div className="card-theme-picker" role="group" aria-label="Выбор фона карточки">
           {CARD_THEMES.map((theme) => <button type="button" key={theme.id} className={`card-theme-option card-theme-${theme.id} ${add.card_theme === theme.id ? 'chosen' : ''}`} aria-pressed={add.card_theme === theme.id} onClick={() => setAdd({ ...add, card_theme: theme.id })}><span className="card-theme-swatch"/><b>{theme.label}</b>{add.card_theme === theme.id && <Check size={14}/>}</button>)}
         </div>
-        <label>Выбери рамку карточки</label>
-        <div className="card-frame-picker" role="group" aria-label="Выбор рамки карточки">
-          {CARD_FRAMES.map((frame) => <button type="button" key={frame.id} className={`card-frame-option ${add.card_frame === frame.id ? 'chosen' : ''}`} aria-pressed={add.card_frame === frame.id} onClick={() => setAdd(current => ({ ...current, card_frame: frame.id }))}>
-            <span className={`card-frame-sample card-frame-${frame.id}`}><i/><CardFrameArt frame={frame.id}/></span><b>{frame.label}</b>{add.card_frame === frame.id && <Check size={14}/>}
-          </button>)}
-        </div>
-        <div className={`card-live-preview card-theme-${add.card_theme} card-frame-${add.card_frame}`}>
-          <CardFrameArt frame={add.card_frame}/>
+        <div className={`card-live-preview card-theme-${add.card_theme}`}>
           <div className="card-preview-content"><small>ПРЕДПРОСМОТР КАРТОЧКИ</small><b>{add.title.trim() || 'Название твоего канала'}</b><span>{add.description.trim() || 'Здесь будет отображаться описание сообщества'}</span></div>
         </div>
         <label>Описание <small>до 500 символов</small></label><textarea rows={4} maxLength={500} value={add.description} onChange={(e) => setAdd({...add,description:e.target.value})} placeholder="Чем полезно ваше сообщество?"/>
