@@ -1158,3 +1158,16 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .active-promotion-section{margin-bottom:24px}
 .active-promotion-section .section-head{margin-bottom:12px}
 .promotion-duration-row button b{font-size:12px;color:#f0d28a}
+
+
+/* Автозагрузка Telegram-канала в форме продвижения */
+.promotion-telegram-loader{margin-bottom:8px}
+.promotion-channel-preview{display:flex;gap:12px;align-items:flex-start;margin:13px 0 8px;padding:12px;border:1px solid #ffffff14;border-radius:14px;background:#13161c}
+.promotion-channel-preview img,.promotion-channel-fallback{width:58px;height:58px;flex:none;border-radius:15px;object-fit:cover;background:#292d38}
+.promotion-channel-fallback{display:grid;place-items:center;color:#c7beff;font-size:22px;font-weight:800}
+.promotion-channel-preview>div:last-child{min-width:0;flex:1}
+.promotion-channel-preview b{display:block;color:#f3f4f6;font-size:13px}
+.promotion-channel-preview small{display:block;margin-top:3px;color:#9ca3af;font-size:10px}
+.promotion-channel-preview p{margin:7px 0 0;color:#b6bdc9;font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.promotion-preview-warning{display:flex;gap:5px;align-items:flex-start;margin:8px 0;color:#e8c77f;font-size:11px;line-height:1.45}
+.promotion-preview-warning svg{flex:none}
