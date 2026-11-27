@@ -514,7 +514,7 @@ export default function App() {
         {filteredCategories.map((item,index)=>(
           <button className={`category-tile ${category===String(item.id)?'category-tile-active':''}`} key={item.id} onClick={()=>{setCategory(String(item.id));loadPublic({query,category:String(item.id),sort:'top'});}}>
             <span className={`category-symbol tone-${index%6}`}>{item.icon || '✦'}</span>
-            <span><b>{item.title}</b><small>{fmt(item.groups)} сообществ</small></span><ChevronRight size={16}/>
+            <span><b>{item.title}</b>{!['покупки и скидки','технологии'].includes(String(item.title || '').trim().toLocaleLowerCase('ru')) && <small>{fmt(item.groups)} сообществ</small>}</span><ChevronRight size={16}/>
           </button>
         ))}
       </div>
