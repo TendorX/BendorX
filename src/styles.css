@@ -1192,3 +1192,11 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .promotion-featured-card .community-card-badge{width:max-content;padding:4px 9px;border:1px solid rgba(255,214,133,.28);border-radius:7px;background:rgba(255,201,94,.12);color:#ffda91;font-size:10px;font-weight:800}
 .promotion-featured-card .promotion-remove-button{top:12px;right:12px;width:34px;height:34px}
 @media(max-width:560px){.promotion-featured-card .community-card{min-height:150px;padding:19px 16px;gap:12px;border-radius:18px}.promotion-featured-card .community-main{gap:12px}.promotion-featured-card .avatar{width:62px;height:62px;flex-basis:62px;border-radius:17px}.promotion-featured-card .community-copy strong{font-size:17px}.promotion-featured-card .community-description{font-size:11px;-webkit-line-clamp:3}.promotion-featured-card .community-copy small{font-size:10px}}
+
+
+/* Featured channel: visit action below the description */
+.promotion-featured-card .community-card{flex-direction:column;align-items:stretch}
+.promotion-featured-card .community-main{width:100%}
+.promotion-featured-card .featured-visit-button{align-self:flex-start;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-width:138px;margin:2px 0 0 94px;padding:11px 19px;border:1px solid rgba(241,189,104,.48);border-radius:11px;background:linear-gradient(110deg,#f1bd68,#d99a3d);color:#21190e;font-size:12px;font-weight:800;box-shadow:0 7px 20px rgba(217,154,61,.2);transition:transform .18s,filter .18s}
+.promotion-featured-card .featured-visit-button:hover{transform:translateY(-1px);filter:brightness(1.08)}
+@media(max-width:560px){.promotion-featured-card .featured-visit-button{margin-left:74px;min-width:126px;padding:10px 16px}}
