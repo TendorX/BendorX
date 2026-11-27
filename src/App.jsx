@@ -20,7 +20,7 @@ const STATUS = {
   rejected: ['Отклонено', 'rejected'], changes: ['Нужны исправления', 'changes'],
   hidden: ['Скрыто', 'hidden'], blocked: ['Заблокировано', 'blocked'], draft: ['Черновик', 'draft']
 };
-const CARD_THEMES = [{"id":"violet","label":"Фиолетовый","a":"#30245f","b":"#7655d9"},{"id":"ocean","label":"Океан","a":"#123b59","b":"#1689a8"},{"id":"sunset","label":"Закат","a":"#642b42","b":"#d66b54"},{"id":"emerald","label":"Изумруд","a":"#124c43","b":"#229b76"},{"id":"ruby","label":"Рубин","a":"#5c2037","b":"#bd4564"},{"id":"gold","label":"Золото","a":"#59421e","b":"#bd8a36"},{"id":"blue","label":"Синий","a":"#1c3268","b":"#456ed0"},{"id":"midnight","label":"Ночь","a":"#252b42","b":"#59627e"}];
+const CARD_THEMES = [{"id":"violet","label":"Фиолетовый","a":"#30245f","b":"#7655d9"},{"id":"ocean","label":"Океан","a":"#123b59","b":"#1689a8"},{"id":"sunset","label":"Закат","a":"#642b42","b":"#d66b54"},{"id":"emerald","label":"Изумруд","a":"#124c43","b":"#229b76"},{"id":"ruby","label":"Рубин","a":"#5c2037","b":"#bd4564"},{"id":"gold","label":"Золото","a":"#59421e","b":"#bd8a36"},{"id":"blue","label":"Синий","a":"#1c3268","b":"#456ed0"},{"id":"midnight","label":"Ночь","a":"#252b42","b":"#59627e"},{"id":"crimson","label":"Бордовый","a":"#4b1025","b":"#a8274e"},{"id":"coral","label":"Коралловый","a":"#78332d","b":"#ed8069"},{"id":"pink","label":"Розовый","a":"#702b58","b":"#dc70ae"},{"id":"lavender","label":"Лавандовый","a":"#40345f","b":"#a58be8"},{"id":"ice","label":"Ледяной","a":"#16485d","b":"#70c9df"},{"id":"turquoise","label":"Бирюзовый","a":"#07545a","b":"#20b9b0"},{"id":"lime","label":"Лаймовый","a":"#344b20","b":"#91b94a"},{"id":"forest","label":"Лесной","a":"#123a2b","b":"#43865b"},{"id":"amber","label":"Янтарный","a":"#60400e","b":"#d69b28"},{"id":"copper","label":"Медный","a":"#57301f","b":"#bd7047"},{"id":"graphite","label":"Графитовый","a":"#25282d","b":"#626b75"},{"id":"plum","label":"Сливовый","a":"#3f204e","b":"#9154a8"},{"id":"mint","label":"Мятный","a":"#205044","b":"#83cdb0"},{"id":"sand","label":"Песочный","a":"#55432d","b":"#c6a878"}];
 
 function fmt(value) {
   const n = Number(value || 0);
@@ -69,6 +69,7 @@ export default function App() {
   const [profilePage, setProfilePage] = useState('main');
   const [add, setAdd] = useState({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_emoji: null });
   const [addCategoriesOpen, setAddCategoriesOpen] = useState(false);
+  const [showThemePicker, setShowThemePicker] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -565,9 +566,17 @@ export default function App() {
           </div>}
         </div>
         {!add.category_ids.length && <small className="add-category-hint">Выбери минимум одну категорию. Можно выбрать до трёх.</small>}
-        <label>Выбери фон карточки</label>
-        <div className="card-theme-picker" role="group" aria-label="Выбор фона карточки">
-          {CARD_THEMES.map((theme) => <button type="button" key={theme.id} className={`card-theme-option card-theme-${theme.id} ${add.card_theme === theme.id ? 'chosen' : ''}`} aria-pressed={add.card_theme === theme.id} onClick={() => setAdd({ ...add, card_theme: theme.id })}><span className="card-theme-swatch"/><b>{theme.label}</b>{add.card_theme === theme.id && <Check size={14}/>}</button>)}
+        <label>Фон карточки</label>
+        <div className="card-color-control">
+          <button type="button" className="card-color-toggle" aria-expanded={showThemePicker} onClick={() => setShowThemePicker(open => !open)}>
+            <span className={`card-color-current card-theme-${add.card_theme}`}/>
+            <b>Выбрать цвет</b>
+            <small>{CARD_THEMES.find(theme => theme.id === add.card_theme)?.label || 'Фиолетовый'}</small>
+            <ChevronDown size={16} className={showThemePicker ? 'turned' : ''}/>
+          </button>
+          {showThemePicker && <div className="card-color-palette" role="group" aria-label="Цвета фона карточки">
+            {CARD_THEMES.map(theme => <button type="button" key={theme.id} title={theme.label} aria-label={theme.label} aria-pressed={add.card_theme === theme.id} className={`card-color-sample card-theme-${theme.id} ${add.card_theme === theme.id ? 'chosen' : ''}`} onClick={() => { setAdd(current => ({...current,card_theme:theme.id})); setShowThemePicker(false); }}>{add.card_theme === theme.id && <Check size={15}/>}</button>)}
+          </div>}
         </div>
         <div className={`card-live-preview card-theme-${add.card_theme}`}>
           <div className="card-preview-content"><small>ПРЕДПРОСМОТР КАРТОЧКИ</small><b>{add.title.trim() || 'Название твоего канала'}</b><span>{add.description.trim() || 'Здесь будет отображаться описание сообщества'}</span></div>
