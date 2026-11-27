@@ -576,7 +576,7 @@ export default function App() {
         avatar_path: promotion.channel_avatar_path || '',
         votes: 0,
         growth: 0,
-        category: 'Рекламное размещение',
+        category: 'Telegram-канал',
         card_theme: 'default',
         is_external_promotion: true,
       };
@@ -608,7 +608,7 @@ export default function App() {
           {!item.is_external_promotion && <span className="community-meta"><span><ThumbsUp size={13}/>{fmt(item.votes)}</span><span><Flame size={13}/>{fmt(item.growth)} за 7 дней</span></span>}
         </span>
       </button>
-      {featured && item.username && <button type="button" className="featured-visit-button" onClick={() => openTelegram(item.username)}>Заглянуть <ExternalLink size={16}/></button>}
+      {featured && item.username && <button type="button" className="featured-visit-button" onClick={() => openTelegram(item.username)}>Заглянуть</button>}
       {!item.is_external_promotion && <div className="community-actions">
         <button className={`icon-button favorite-button ${favoriteIds.has(Number(item.id)) ? 'favorite-selected' : ''}`} title="Избранное" onClick={() => changeFavorite(item.id)}><Bookmark size={17}/></button>
         {voteNoticeIds.has(Number(item.id))
@@ -968,7 +968,7 @@ export default function App() {
           <button className="modal-close" onClick={()=>setPromotionOpen(false)} aria-label="Закрыть"><X size={18}/></button>
           <div className="eyebrow"><Star size={13}/> ПРОДВИЖЕНИЕ ЗА TELEGRAM STARS</div>
           <h2>Выставить канал на продвижение</h2>
-          <p className="promotion-modal-copy">{me?.role === 'master_admin' ? 'Вставь публичную ссылку Telegram. Размещение доступно даже если канала ещё нет в каталоге.' : 'Выбери своё опубликованное сообщество и срок рекламного размещения.'}</p>
+          <p className="promotion-modal-copy">{me?.role === 'master_admin' ? 'Вставь публичную ссылку Telegram. Размещение доступно даже если канала ещё нет в каталоге.' : 'Выбери своё опубликованное сообщество и срок продвижения.'}</p>
           {!initData ? <TelegramGate/> : <>
             {me?.role === 'master_admin' ? <>
               <label>Ссылка на Telegram-канал</label>
