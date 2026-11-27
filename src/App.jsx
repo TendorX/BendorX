@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
-  Activity, ArrowDownUp, ArrowLeft, ArrowRight, Bell, Bookmark, Check,
+  Activity, ArrowLeft, ArrowRight, Bell, Bookmark, Check,
   ChevronDown, ChevronRight, CircleHelp, Clock3, Crown, ExternalLink, Eye, FileText,
   Filter, Flame, Grid2X2, Heart, Home, ImagePlus, LayoutDashboard, LoaderCircle,
   LogIn, Menu, MessageCircle, Plus, RefreshCw, Search, Send, ShieldCheck,
@@ -85,7 +85,6 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [showAllHomeCategories, setShowAllHomeCategories] = useState(false);
-  const [homeSort, setHomeSort] = useState('votes');
   const [voteNoticeIds, setVoteNoticeIds] = useState(() => new Set());
 
   const initData = tg?.initData || '';
@@ -428,7 +427,7 @@ export default function App() {
     catch (err) { notify(err.message); }
   };
 
-  const homeCommunities = useMemo(() => [...communities].sort((a, b) => homeSort === 'alphabet' ? String(a.title || '').localeCompare(String(b.title || ''), 'ru', { sensitivity: 'base' }) : Number(b.votes || 0) - Number(a.votes || 0)), [communities, homeSort]);
+  const homeCommunities = useMemo(() => [...communities].sort((a, b) => Number(b.votes || 0) - Number(a.votes || 0)), [communities]);
 
   const filtered = communities;
   const filteredCategories = useMemo(() => {
@@ -489,8 +488,7 @@ export default function App() {
         <div className="promo-banner-art"><div className="promo-star-orbit"/><Star size={76} fill="currentColor"/></div>
       </section>
       <div className="section-head home-section-heading">
-        <div><div className="eyebrow">ВСЕ ОПУБЛИКОВАННЫЕ СООБЩЕСТВА</div><h2>Все каналы</h2><p className="home-section-note">{homeSort === 'votes' ? 'Сначала сообщества с наибольшим количеством голосов.' : 'Каналы отсортированы по алфавиту.'}</p></div>
-        <button type="button" className="home-sort-label home-sort-button" onClick={() => setHomeSort(current => current === 'votes' ? 'alphabet' : 'votes')} aria-label={homeSort === 'votes' ? 'Переключить сортировку на алфавит' : 'Переключить сортировку на количество голосов'}><ArrowDownUp size={13}/> {homeSort === 'votes' ? 'По голосам' : 'По алфавиту'}</button>
+        <div><div className="eyebrow">ВСЕ ОПУБЛИКОВАННЫЕ СООБЩЕСТВА</div><h2>Все каналы</h2><p className="home-section-note">Сначала сообщества с наибольшим количеством голосов.</p></div>
       </div>
       {homeCommunities.length
         ? <div className="community-list">{homeCommunities.map(item=><CommunityCard key={item.id} item={item}/>)}</div>
