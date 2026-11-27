@@ -444,7 +444,7 @@ export default function App() {
 
   const CommunityCard = ({ item, compact = false, badge = '' }) => (
     <article className={`community-card ${compact ? 'compact' : ''} card-theme-${CARD_THEMES.some((theme) => theme.id === item.card_theme) ? item.card_theme : 'default'} ${item.card_emoji ? 'has-card-emoji' : ''}`}>
-      {item.card_emoji && <div className="community-emoji-pattern" aria-hidden="true">{Array.from({length:9},(_,i)=><span key={i} className={`emoji-mark emoji-mark-${i+1}`}>{item.card_emoji}</span>)}</div>}
+      {item.card_emoji && <div className="community-emoji-pattern" aria-hidden="true">{Array.from({length:12},(_,i)=><span key={i} className={`emoji-mark emoji-mark-${i+1}`}>{item.card_emoji}</span>)}</div>}
       <button className="community-main" onClick={() => openCommunity(item)}>
         {avatarUrl(item) ? <img className="avatar" src={avatarUrl(item)} alt="" /> : <div className="avatar fallback">{(item.title || '?').slice(0, 1).toUpperCase()}</div>}
         <span className="community-copy">
@@ -574,7 +574,7 @@ export default function App() {
           {['✨','🔥','⚡','🚀','💎','🎮','👑','🌸','⭐','🦋','🐼','🎯','💫','🌙','🍀','🎧','🧩','❤️','☀️','🪐'].map(emoji=><button type="button" key={emoji} className={`card-emoji-option ${add.card_emoji===emoji?'chosen':''}`} aria-pressed={add.card_emoji===emoji} onClick={()=>setAdd(current=>({...current,card_emoji:emoji}))}>{emoji}{add.card_emoji===emoji&&<Check size={12}/>}</button>)}
         </div>
         <div className={`card-live-preview card-theme-${add.card_theme} card-preview-emoji`}>
-          <div className="preview-emoji-pattern" aria-hidden="true">{Array.from({length:9},(_,i)=><span key={i} className={`emoji-mark emoji-mark-${i+1}`}>{add.card_emoji}</span>)}</div>
+          <div className="preview-emoji-pattern" aria-hidden="true">{Array.from({length:12},(_,i)=><span key={i} className={`emoji-mark emoji-mark-${i+1}`}>{add.card_emoji}</span>)}</div>
           <div className="card-preview-content"><small>ПРЕДПРОСМОТР КАРТОЧКИ</small><b>{add.title.trim() || 'Название твоего канала'}</b><span>{add.description.trim() || 'Здесь будет отображаться описание сообщества'}</span></div>
         </div>
         <label>Описание <small>до 500 символов</small></label><textarea rows={4} maxLength={500} value={add.description} onChange={(e) => setAdd({...add,description:e.target.value})} placeholder="Чем полезно ваше сообщество?"/>
