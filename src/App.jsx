@@ -20,9 +20,9 @@ const STATUS = {
   rejected: ['Отклонено', 'rejected'], changes: ['Нужны исправления', 'changes'],
   hidden: ['Скрыто', 'hidden'], blocked: ['Заблокировано', 'blocked'], draft: ['Черновик', 'draft']
 };
-const CARD_FRAMES = [{id:'none',label:'Без рамки'},{id:'claws',label:'Когти'},{id:'thorns',label:'Шипы'},{id:'chain',label:'Цепи'},{id:'royal',label:'Орнамент'}];
+const CARD_FRAMES = [{id:'none',label:'Без рамки'},{id:'botanical',label:'Зелёный орнамент'},{id:'claws',label:'Когти'},{id:'thorns',label:'Шипы'},{id:'chain',label:'Цепи'},{id:'royal',label:'Орнамент'}];
 const CardFrameArt = ({frame}) => {
- if (!frame || frame === 'none') return null;
+ if (!frame || frame === 'none' || frame === 'botanical') return null;
  const metal = '#c9c4d8';
  const gold = '#e5c477';
  return <svg className={'card-frame-art card-frame-art-' + frame} viewBox='0 0 400 180' preserveAspectRatio='none' aria-hidden='true'>
