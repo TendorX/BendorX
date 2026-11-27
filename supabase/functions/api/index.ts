@@ -513,16 +513,48 @@ Deno.serve(async (req: Request) => {
       }
 
       case "promotion_invoice": {
-        await rpc("tx_rate_limit_consume", { p_action: "promotion_invoice", p_actor: tid, p_limit: 5, p_window_seconds: 3600 });
+        const isMasterAdmin = Boolean(masterTid && String(tid) === masterTid);
+        if (!isMasterAdmin) {
+          await rpc("tx_rate_limit_consume", { p_action: "promotion_invoice", p_actor: tid, p_limit: 5, p_window_seconds: 3600 });
+        }
         const communityId = positiveInteger(body.community_id);
         const durationDays = Number(body.duration_days);
         const prices: Record<number, number> = { 1: 50, 3: 120, 7: 250 };
         const starsAmount = prices[durationDays];
         if (!starsAmount) throw new ApiError(400, "Выбери доступный срок размещения.");
-        const { data: community, error: communityError } = await db.from("communities")
-          .select("id,title,owner_tid,status").eq("id", communityId).eq("owner_tid", tid).eq("status", "approved").maybeSingle();
+        let communityQuery = db.from("communities")
+          .select("id,title,owner_tid,status").eq("id", communityId).eq("status", "approved");
+        if (!isMasterAdmin) communityQuery = communityQuery.eq("owner_tid", tid);
+        const { data: community, error: communityError } = await communityQuery.maybeSingle();
         if (communityError) throw new ApiError(500, "Не удалось проверить канал");
-        if (!community) throw new ApiError(403, "Можно продвигать только свой опубликованный канал.");
+        if (!community) throw new ApiError(403, isMasterAdmin
+          ? "Можно продвигать только опубликованный канал."
+          : "Можно продвигать только свой опубликованный канал.");
+
+        // Главный администратор размещает любой одобренный канал бесплатно.
+        // Проверка выполняется по серверному MASTER_ADMIN_TID, а не по данным клиента.
+        if (isMasterAdmin) {
+          const now = new Date();
+          const endsAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+          const { data: freeOrder, error: freeError } = await db.from("promotions").insert({
+            community_id: communityId,
+            telegram_user_id: tid,
+            duration_days: durationDays,
+            stars_amount: 0,
+            invoice_payload: "bendorx_admin_free_" + crypto.randomUUID(),
+            status: "active",
+            paid_at: now.toISOString(),
+            starts_at: now.toISOString(),
+            ends_at: endsAt.toISOString(),
+          }).select("id").single();
+          if (freeError || !freeOrder) {
+            console.error("Free admin promotion insert failed:", freeError?.code);
+            throw new ApiError(500, "Не удалось бесплатно разместить канал.");
+          }
+          data = { free: true, stars: 0, duration_days: durationDays, promotion_id: freeOrder.id };
+          break;
+        }
+
         try { await ensureWelcomeWebhook(verifiedBotToken); }
         catch (webhookError) {
           console.error("Payment webhook setup failed:", webhookError instanceof Error ? webhookError.message : "unknown");
