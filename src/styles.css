@@ -336,7 +336,7 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .promotion-modal>label{display:block;margin:17px 0 7px;color:#c5c9d2;font-size:12px;font-weight:700}
 .promotion-select{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;background:#13161c;color:#f3f4f6;font-size:12px}
 .promotion-duration-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
-.promotion-duration-row button{padding:10px 6px;border:1px solid var(--line);border-radius:10px;background:#13161c;color:#a6adba;font-size:11px}
+.promotion-duration-row button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 6px;border:1px solid var(--line);border-radius:10px;background:#13161c;color:#a6adba;font-size:11px}
 .promotion-duration-row button.active{border-color:#8b7cff88;background:#8b7cff20;color:#d0caff}
 .promotion-coming-soon{display:flex;align-items:flex-start;gap:9px;margin:16px 0;padding:12px;border:1px solid #f1bd6844;border-radius:12px;background:#f1bd6811;color:#e8c77f;font-size:11px;line-height:1.5}
 .promotion-coming-soon svg{flex:none}
@@ -1154,3 +1154,7 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .telegram-fetch-button:disabled{opacity:.6;cursor:wait}
 .telegram-info-success{display:flex;align-items:center;gap:5px;margin-top:8px;color:#72d6a0;font-size:11px}
 @media(max-width:480px){.telegram-link-loader{flex-direction:column}.telegram-fetch-button{min-height:42px}}
+
+.active-promotion-section{margin-bottom:24px}
+.active-promotion-section .section-head{margin-bottom:12px}
+.promotion-duration-row button b{font-size:12px;color:#f0d28a}
