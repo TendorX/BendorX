@@ -160,7 +160,13 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .brand-mark b{font-size:20px;line-height:1;font-weight:900;color:#fff}
 .brand-mark i{font-size:13px;line-height:1;font-style:normal;font-weight:900;color:#e3deff;margin-left:-2px;transform:translateY(4px)}
 .brand-name>span{color:var(--purple)}
-.notes-read-button{align-self:stretch;margin-bottom:2px}
+.notifications-actions{display:flex;align-items:stretch;gap:9px}
+.notes-action-button{flex:1;min-width:0;padding:11px 12px;font-size:12px;white-space:normal}
+.notes-delete-button{border-color:rgba(255,112,125,.22);color:#ff9aa4}
+.notes-delete-button:not(:disabled):hover{background:rgba(255,112,125,.1)}
+.notes-action-button:disabled{opacity:.42;cursor:not-allowed}
+.note-card.is-read{opacity:.72}
+@media(max-width:420px){.notifications-actions{gap:7px}.notes-action-button{padding:10px 8px;font-size:10px}}
 
 
 /* Moderation application details */
