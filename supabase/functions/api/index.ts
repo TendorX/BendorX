@@ -106,7 +106,6 @@ async function ensureWelcomeWebhook(botToken: string) {
   if (!infoResponse.ok || info?.ok !== true) {
     throw new Error("Telegram getWebhookInfo failed");
   }
-  if (info.result?.url === webhookUrl) return;
 
   const setResponse = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook`, {
     method: "POST",
@@ -114,7 +113,7 @@ async function ensureWelcomeWebhook(botToken: string) {
     body: JSON.stringify({
       url: webhookUrl,
       secret_token: secretToken,
-      allowed_updates: ["message"],
+      allowed_updates: ["message", "pre_checkout_query"],
       drop_pending_updates: false,
     }),
   });
@@ -484,6 +483,66 @@ Deno.serve(async (req: Request) => {
     switch (body.action) {
       case "check_subscription": {
         data = { subscribed, channel: "@BendorX" };
+        break;
+      }
+
+
+      case "active_promotions": {
+        const now = new Date().toISOString();
+        await db.from("promotions").update({ status: "expired" }).eq("status", "active").lte("ends_at", now);
+        const { data: active, error: activeError } = await db.from("promotions")
+          .select("id,community_id,duration_days,starts_at,ends_at")
+          .eq("status", "active").gt("ends_at", now)
+          .order("starts_at", { ascending: false }).limit(12);
+        if (activeError) {
+          console.error("Active promotions lookup failed:", activeError.code);
+          throw new ApiError(500, "Не удалось загрузить рекламные размещения");
+        }
+        data = active || [];
+        break;
+      }
+
+      case "promotion_invoice": {
+        await rpc("tx_rate_limit_consume", { p_action: "promotion_invoice", p_actor: tid, p_limit: 5, p_window_seconds: 3600 });
+        const communityId = positiveInteger(body.community_id);
+        const durationDays = Number(body.duration_days);
+        const prices: Record<number, number> = { 1: 50, 3: 120, 7: 250 };
+        const starsAmount = prices[durationDays];
+        if (!starsAmount) throw new ApiError(400, "Выбери доступный срок размещения.");
+        const { data: community, error: communityError } = await db.from("communities")
+          .select("id,title,owner_tid,status").eq("id", communityId).eq("owner_tid", tid).eq("status", "approved").maybeSingle();
+        if (communityError) throw new ApiError(500, "Не удалось проверить канал");
+        if (!community) throw new ApiError(403, "Можно продвигать только свой опубликованный канал.");
+        try { await ensureWelcomeWebhook(verifiedBotToken); }
+        catch (webhookError) {
+          console.error("Payment webhook setup failed:", webhookError instanceof Error ? webhookError.message : "unknown");
+          throw new ApiError(503, "Не удалось подготовить приём оплаты. Попробуй ещё раз позже.");
+        }
+        const invoicePayload = "bendorx_promo_" + crypto.randomUUID();
+        const { data: order, error: orderError } = await db.from("promotions").insert({
+          community_id: communityId, telegram_user_id: tid, duration_days: durationDays,
+          stars_amount: starsAmount, invoice_payload: invoicePayload, status: "pending",
+        }).select("id").single();
+        if (orderError || !order) {
+          console.error("Promotion order insert failed:", orderError?.code);
+          throw new ApiError(500, "Не удалось создать заказ на продвижение");
+        }
+        const invoiceResponse = await fetch("https://api.telegram.org/bot" + verifiedBotToken + "/createInvoiceLink", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "Продвижение в Bendor-X",
+            description: "Размещение канала «" + cleanText(community.title, 90) + "» на " + durationDays + " дн.",
+            payload: invoicePayload, currency: "XTR",
+            prices: [{ label: "Продвижение на " + durationDays + " дн.", amount: starsAmount }],
+          }),
+        });
+        const invoiceResult = await invoiceResponse.json().catch(() => null);
+        if (!invoiceResponse.ok || invoiceResult?.ok !== true || !invoiceResult?.result) {
+          await db.from("promotions").update({ status: "failed" }).eq("id", order.id);
+          console.error("Telegram createInvoiceLink failed:", invoiceResult?.error_code ?? invoiceResponse.status);
+          throw new ApiError(502, "Telegram не смог создать счёт. Попробуй ещё раз.");
+        }
+        data = { invoice_url: invoiceResult.result, stars: starsAmount, duration_days: durationDays };
         break;
       }
 
