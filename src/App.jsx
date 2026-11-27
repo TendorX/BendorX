@@ -98,6 +98,7 @@ export default function App() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [showAllHomeCategories, setShowAllHomeCategories] = useState(false);
   const [voteNoticeIds, setVoteNoticeIds] = useState(() => new Set());
+  const [notesDeleting, setNotesDeleting] = useState(false);
 
   const initData = tg?.initData || '';
   const telegramUser = tg?.initDataUnsafe?.user || null;
@@ -107,6 +108,8 @@ export default function App() {
   const votedIds = useMemo(() => new Set((me?.voted || []).map(Number)), [me]);
   const favoriteIds = useMemo(() => new Set((me?.favs || []).map(Number)), [me]);
   const unreadNotes = me?.notes || [];
+  const readNotes = unreadNotes.filter((note) => Boolean(note.read_at));
+  const hasUnreadNotes = unreadNotes.some((note) => !note.read_at);
 
   const notify = useCallback((message) => {
     setToast(message);
@@ -902,7 +905,13 @@ export default function App() {
   const renderNotifications = () => (
     <>
       <PageHeader eyebrow="ЦЕНТР УВЕДОМЛЕНИЙ" title="Уведомления" subtitle="Новости о статусах твоих публикаций и действиях модерации." action={<button className="icon-button" onClick={()=>loadMe().catch(e=>notify(e.message))}><RefreshCw size={17}/></button>}/>
-      {!initData ? <TelegramGate/> : <div className="notifications-page"><button className="secondary-button full notes-read-button" onClick={async()=>{try{await api('notes_read');await loadMe();notify('Уведомления отмечены прочитанными');}catch(e){notify(e.message);}}}>Отметить прочитанными</button><div className="notes-list">{unreadNotes.length ? unreadNotes.map((note,index)=><div className="note-card" key={`${note.at}-${index}`}><Bell size={16}/><div><b>{note.title}</b><p>{note.body}</p><small>{note.at ? new Date(note.at).toLocaleString('ru-RU') : ''}</small></div></div>) : <EmptyState text="Новых уведомлений пока нет."/>}</div></div>}
+      {!initData ? <TelegramGate/> : <div className="notifications-page">
+        <div className="notifications-actions">
+          <button className="secondary-button notes-action-button" disabled={!hasUnreadNotes} onClick={async()=>{try{await api('notes_read');await loadMe();notify('Уведомления отмечены прочитанными');}catch(e){notify(e.message);}}}>Отметить все как прочитанные</button>
+          <button className="secondary-button notes-action-button notes-delete-button" disabled={!readNotes.length || notesDeleting} onClick={async()=>{if(!window.confirm('Удалить все прочитанные уведомления?'))return;setNotesDeleting(true);try{const count=await api('notes_delete_read');await loadMe();notify(count ? `Удалено уведомлений: ${count}` : 'Прочитанных уведомлений нет');}catch(e){notify(e.message);}finally{setNotesDeleting(false);}}}>{notesDeleting ? 'Удаляем…' : 'Удалить прочитанное'}</button>
+        </div>
+        <div className="notes-list">{unreadNotes.length ? unreadNotes.map((note,index)=><div className={`note-card ${note.read_at ? 'is-read' : ''}`} key={note.id || `${note.at}-${index}`}><Bell size={16}/><div><b>{note.title}</b><p>{note.body}</p><small>{note.at ? new Date(note.at).toLocaleString('ru-RU') : ''}{note.read_at ? ' · Прочитано' : ''}</small></div></div>) : <EmptyState text="Уведомлений пока нет."/>}</div>
+      </div>}
     </>
   );
 
