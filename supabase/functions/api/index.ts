@@ -16,6 +16,7 @@ const HEADERS = {
 
 const encoder = new TextEncoder();
 const ALLOWED_CARD_THEMES = new Set(['violet','ocean','sunset','emerald','ruby','gold','blue','midnight']);
+const ALLOWED_CARD_FRAMES = new Set(['none','thin','neon','gradient','double','corners','gold']);
 const ALLOWED_CARD_EMOJIS = new Set(['✨','🔥','⚡','🚀','💎','🎮','👑','🌸','⭐','🦋','🐼','🎯','💫','🌙','🍀','🎧','🧩','❤️','☀️','🪐']);
 
 class ApiError extends Error {
@@ -549,6 +550,7 @@ Deno.serve(async (req: Request) => {
           .slice(0, 5);
 
         const cardTheme = ALLOWED_CARD_THEMES.has(String(body.card_theme)) ? String(body.card_theme) : 'violet';
+        const cardFrame = ALLOWED_CARD_FRAMES.has(String(body.card_frame)) ? String(body.card_frame) : 'none';
         const cardEmoji = ALLOWED_CARD_EMOJIS.has(String(body.card_emoji)) ? String(body.card_emoji) : '✨';
 
         // Не даём одному пустому/устаревшему значению категории
@@ -600,7 +602,7 @@ Deno.serve(async (req: Request) => {
         const communityKind = body.kind === "channel" ? "channel" : "group";
         const { error: designError, count: designCount } = await db
           .from("communities")
-          .update({ card_theme: cardTheme, card_emoji: cardEmoji, kind: communityKind }, { count: "exact" })
+          .update({ card_theme: cardTheme, card_frame: cardFrame, card_emoji: cardEmoji, kind: communityKind }, { count: "exact" })
           .eq("id", communityId)
           .eq("owner_tid", tid);
 
