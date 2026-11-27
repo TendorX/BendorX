@@ -595,7 +595,7 @@ export default function App() {
   const categoryLabel = (id) => categories.find((x) => Number(x.id) === Number(id))?.title || 'Без категории';
   const avatarUrl = (item) => { const path = media[item.id] || item.avatar_path; return path ? `${CFG.url}/storage/v1/object/public/community-media/${path}` : ''; };
 
-  const CommunityCard = ({ item, compact = false, badge = '' }) => (
+  const CommunityCard = ({ item, compact = false, badge = '', featured = false }) => (
     <article className={`community-card ${compact ? 'compact' : ''} card-theme-${CARD_THEMES.some((theme) => theme.id === item.card_theme) ? item.card_theme : 'default'} ${item.card_emoji ? 'has-card-emoji' : ''}`}>
       {item.card_emoji && <div className="community-emoji-pattern" aria-hidden="true">{Array.from({length:12},(_,i)=><span key={i} className={`emoji-mark emoji-mark-${i+1}`}>{item.card_emoji}</span>)}</div>}
       <button className="community-main" onClick={() => item.is_external_promotion ? openTelegram(item.username) : openCommunity(item)}>
@@ -608,6 +608,7 @@ export default function App() {
           {!item.is_external_promotion && <span className="community-meta"><span><ThumbsUp size={13}/>{fmt(item.votes)}</span><span><Flame size={13}/>{fmt(item.growth)} за 7 дней</span></span>}
         </span>
       </button>
+      {featured && item.username && <button type="button" className="featured-visit-button" onClick={() => openTelegram(item.username)}>Заглянуть <ArrowUpRight size={16}/></button>}
       {!item.is_external_promotion && <div className="community-actions">
         <button className={`icon-button favorite-button ${favoriteIds.has(Number(item.id)) ? 'favorite-selected' : ''}`} title="Избранное" onClick={() => changeFavorite(item.id)}><Bookmark size={17}/></button>
         {voteNoticeIds.has(Number(item.id))
@@ -637,13 +638,13 @@ export default function App() {
       {activePromotedCommunities.length > 0 && <section className="active-promotion-section">
         <div className="section-head"><div><h2>Самый популярный канал</h2></div></div>
         <div className="community-list">{activePromotedCommunities.slice(0, 1).map(item=><div className="promotion-admin-item promotion-featured-card" key={item.promotion_id}>
-          <CommunityCard item={item}/> 
+          <CommunityCard item={item} featured/> 
           {me?.role === 'master_admin' && <button type="button" className="promotion-remove-button" title="Убрать из баннера" aria-label={`Убрать ${item.title} из баннера`} onClick={()=>removePromotion(item.promotion_id)}><X size={15}/></button>}
         </div>)}</div>
       </section>}
       {activePromotedCommunities.length === 0 && <section className="promo-banner">
         <div className="promo-banner-content">
-          <span className="eyebrow"><Star size={13}/> ПРОДВИЖЕНИЕ КАНАЛА</span>
+          <span className="eyebrow">BENDOR-X</span>
           <h1>Продвинь свой канал<br/><em>в Bendor-X</em></h1>
           <p>Покажи своё сообщество пользователям платформы. Выбери канал и срок продвижения за Telegram Stars.</p>
           <button className="primary-button promo-banner-button" onClick={()=>setPromotionOpen(true)}>Продвинуть за <Star size={15} fill="currentColor"/> Stars</button>
