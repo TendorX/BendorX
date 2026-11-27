@@ -575,7 +575,7 @@ export default function App() {
             <ChevronDown size={16} className={showThemePicker ? 'turned' : ''}/>
           </button>
           {showThemePicker && <div className="card-color-palette" role="group" aria-label="Цвета фона карточки">
-            {CARD_THEMES.map(theme => <button type="button" key={theme.id} title={theme.label} aria-label={theme.label} aria-pressed={add.card_theme === theme.id} className={`card-color-sample card-theme-${theme.id} ${add.card_theme === theme.id ? 'chosen' : ''}`} onClick={() => setAdd(current => ({...current,card_theme:theme.id}))>{add.card_theme === theme.id && <Check size={15}/>}</button>)}
+            {CARD_THEMES.map(theme => <button type="button" key={theme.id} title={theme.label} aria-label={theme.label} aria-pressed={add.card_theme === theme.id} className={`card-color-sample card-theme-${theme.id} ${add.card_theme === theme.id ? 'chosen' : ''}`} onClick={() => setAdd(current => ({...current,card_theme:theme.id}))}>{add.card_theme === theme.id && <Check size={15}/>}</button>)}
           </div>}
         </div>
         <div className={`card-live-preview card-theme-${add.card_theme}`}>
