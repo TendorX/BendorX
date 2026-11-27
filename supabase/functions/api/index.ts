@@ -91,6 +91,38 @@ function positiveInteger(value: unknown) {
   return number;
 }
 
+// Автоматически подключаем /start webhook при первом запросе главного администратора.
+async function ensureWelcomeWebhook(botToken: string) {
+  const webhookUrl = "https://jbqyndtrbqmvzghqihak.supabase.co/functions/v1/bot-webhook";
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    encoder.encode(`${botToken}:bendorx-welcome-webhook-v1`),
+  );
+  const secretToken = toHex(new Uint8Array(digest));
+
+  const infoResponse = await fetch(`https://api.telegram.org/bot${botToken}/getWebhookInfo`);
+  const info = await infoResponse.json().catch(() => null);
+  if (!infoResponse.ok || info?.ok !== true) {
+    throw new Error("Telegram getWebhookInfo failed");
+  }
+  if (info.result?.url === webhookUrl) return;
+
+  const setResponse = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      url: webhookUrl,
+      secret_token: secretToken,
+      allowed_updates: ["message"],
+      drop_pending_updates: false,
+    }),
+  });
+  const setResult = await setResponse.json().catch(() => null);
+  if (!setResponse.ok || setResult?.ok !== true) {
+    throw new Error(`Telegram setWebhook failed: ${setResult?.error_code ?? setResponse.status}`);
+  }
+}
+
 // Проверка подлинности Telegram initData.
 async function verifyTelegram(
   initData: string,
@@ -433,6 +465,16 @@ Deno.serve(async (req: Request) => {
             "Не удалось проверить права администратора",
           );
         }
+      }
+    }
+
+    // Регистрация webhook выполняется безопасно только от главного администратора.
+    // Проверка URL предотвращает повторную настройку на каждом запросе.
+    if (masterTid && String(tid) === masterTid) {
+      try {
+        await ensureWelcomeWebhook(verifiedBotToken);
+      } catch (webhookError) {
+        console.error("Bendor-X welcome webhook setup failed", webhookError instanceof Error ? webhookError.message : "unknown");
       }
     }
 
