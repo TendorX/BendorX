@@ -134,14 +134,21 @@ export default function App() {
 
   const startPromotionPurchase = async () => {
     if (!promotionCommunityId) return notify('Сначала выбери опубликованный канал.');
-    if (!tg?.openInvoice) return notify('Открой Bendor-X в актуальной версии Telegram, чтобы оплатить Stars.');
+    const isMasterAdmin = me?.role === 'master_admin';
+    if (!isMasterAdmin && !tg?.openInvoice) return notify('Открой Bendor-X в актуальной версии Telegram, чтобы оплатить Stars.');
     setPromotionPurchasing(true);
     try {
-      const invoice = await api('promotion_invoice', {
+      const result = await api('promotion_invoice', {
         community_id: Number(promotionCommunityId),
         duration_days: Number(promotionDuration)
       });
-      tg.openInvoice(invoice.invoice_url, async (status) => {
+      if (result?.free && isMasterAdmin) {
+        notify('Канал бесплатно размещён в банере!');
+        await loadPromotions().catch(() => {});
+        setPromotionOpen(false);
+        return;
+      }
+      tg.openInvoice(result.invoice_url, async (status) => {
         if (status === 'paid') {
           notify('Оплата получена. Размещение активируется автоматически.');
           window.setTimeout(() => loadPromotions().catch(() => {}), 1200);
@@ -887,17 +894,17 @@ export default function App() {
           <button className="modal-close" onClick={()=>setPromotionOpen(false)} aria-label="Закрыть"><X size={18}/></button>
           <div className="eyebrow"><Star size={13}/> ПРОДВИЖЕНИЕ ЗА TELEGRAM STARS</div>
           <h2>Выставить канал на продвижение</h2>
-          <p className="promotion-modal-copy">Выбери своё опубликованное сообщество и срок рекламного размещения.</p>
+          <p className="promotion-modal-copy">Выбери опубликованное сообщество и срок рекламного размещения.</p>
           {!initData ? <TelegramGate/> : <>
-            <label>Моё сообщество</label>
+            <label>{me?.role === 'master_admin' ? 'Сообщество для размещения' : 'Моё сообщество'}</label>
             <select className="promotion-select" value={promotionCommunityId} onChange={(e)=>setPromotionCommunityId(e.target.value)}>
               <option value="">Выбери опубликованный канал</option>
-              {myCommunities.filter(item=>item.status==='approved').map(item=><option key={item.id} value={item.id}>{item.title}</option>)}
+              {(me?.role === 'master_admin' ? communities : myCommunities).filter(item=>item.status==='approved').map(item=><option key={item.id} value={item.id}>{item.title}</option>)}
             </select>
             <label>Срок размещения</label>
-            <div className="promotion-duration-row">{[['1','1 день','50'],['3','3 дня','120'],['7','7 дней','250']].map(([value,label,price])=><button type="button" key={value} className={promotionDuration===value?'active':''} onClick={()=>setPromotionDuration(value)}><span>{label}</span><b>{price} ⭐</b></button>)}</div>
+            <div className="promotion-duration-row">{[['1','1 день','50'],['3','3 дня','120'],['7','7 дней','250']].map(([value,label,price])=><button type="button" key={value} className={promotionDuration===value?'active':''} onClick={()=>setPromotionDuration(value)}><span>{label}</span><b>{me?.role === 'master_admin' ? '0 ⭐' : `${price} ⭐`}</b></button>)}</div>
             {!myCommunities.some(item=>item.status==='approved') && <p className="promotion-modal-copy">Сначала добавь канал и дождись одобрения модератора. После этого он появится здесь.</p>}
-            <button className="primary-button full" onClick={startPromotionPurchase} disabled={promotionPurchasing || !promotionCommunityId || !myCommunities.some(item=>Number(item.id)===Number(promotionCommunityId) && item.status==='approved')}>{promotionPurchasing ? 'Создаём счёт…' : <>Оплатить {({1:50,3:120,7:250})[Number(promotionDuration)]} <Star size={15} fill="currentColor"/></>}</button>
+            <button className="primary-button full" onClick={startPromotionPurchase} disabled={promotionPurchasing || !promotionCommunityId || !myCommunities.some(item=>Number(item.id)===Number(promotionCommunityId) && item.status==='approved')}>{promotionPurchasing ? (me?.role === 'master_admin' ? 'Размещаем…' : 'Создаём счёт…') : (me?.role === 'master_admin' ? <>Разместить бесплатно <Star size={15} fill="currentColor"/></> : <>Оплатить {({1:50,3:120,7:250})[Number(promotionDuration)]} <Star size={15} fill="currentColor"/></>)}</button>
           </>}
         </section>
       </div>}
