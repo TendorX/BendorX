@@ -1137,3 +1137,12 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .community-card.has-card-emoji .community-emoji-pattern{display:none!important}
 
 
+
+
+/* Three new multi-stop gradient themes */
+.community-card.card-theme-aurora,.card-live-preview.card-theme-aurora{background:linear-gradient(115deg,#123b55 0%,#287c83 52%,#8a5cc2 100%);}
+.card-color-sample.card-theme-aurora,.card-color-current.card-theme-aurora{background:linear-gradient(115deg,#123b55 0%,#287c83 52%,#8a5cc2 100%);}
+.community-card.card-theme-galaxy,.card-live-preview.card-theme-galaxy{background:linear-gradient(115deg,#21133f 0%,#633b9b 52%,#d05b9c 100%);}
+.card-color-sample.card-theme-galaxy,.card-color-current.card-theme-galaxy{background:linear-gradient(115deg,#21133f 0%,#633b9b 52%,#d05b9c 100%);}
+.community-card.card-theme-tropical,.card-live-preview.card-theme-tropical{background:linear-gradient(115deg,#064c48 0%,#13a58c 52%,#c5c84b 100%);}
+.card-color-sample.card-theme-tropical,.card-color-current.card-theme-tropical{background:linear-gradient(115deg,#064c48 0%,#13a58c 52%,#c5c84b 100%);}
