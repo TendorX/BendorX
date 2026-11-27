@@ -633,30 +633,70 @@ export default function App() {
   const renderPublicationDetail = () => {
     const points = publicationStats?.daily_clicks || [];
     const maxClicks = Math.max(1, ...points.map((point) => Number(point.clicks || 0)));
+    const totalPeriodClicks = points.reduce((sum, point) => sum + Number(point.clicks || 0), 0);
+    const status = STATUS[selectedPublication?.status]?.[0] || selectedPublication?.status || 'Публикация';
     return (
-      <>
-        <PageHeader eyebrow="СТАТИСТИКА ПУБЛИКАЦИИ" title={selectedPublication?.title || 'Публикация'} subtitle={selectedPublication?.username ? `@${selectedPublication.username}` : 'Статистика сообщества'} action={<button className="secondary-button analytics-open-link" onClick={()=>openTelegram(selectedPublication?.username)}>Открыть канал <ExternalLink size={15}/></button>}/>
-        {!initData ? <TelegramGate/> : publicationStatsLoading ? <div className="analytics-loading"><LoaderCircle className="spin" size={22}/> Загружаем статистику…</div> : publicationStats ? <>
-          <div className="analytics-overview">
-            <div className="analytics-community">
-              <div className="analytics-avatar">{avatarUrl(selectedPublication || {}) ? <img src={avatarUrl(selectedPublication)} alt=""/> : (selectedPublication?.title || '?').slice(0,1).toUpperCase()}</div>
-              <div><b>{selectedPublication?.title}</b><small>{STATUS[selectedPublication?.status]?.[0] || selectedPublication?.status || 'Публикация'}</small></div>
+      <div className="pub-analytics-page">
+        <div className="pub-analytics-topline">
+          <button className="pub-back-link" onClick={() => setTab('profile-publications')}><ArrowLeft size={17}/> <span>Мои публикации</span></button>
+          <span className="pub-topline-label">АНАЛИТИКА</span>
+        </div>
+        {!initData ? <TelegramGate/> : publicationStatsLoading ? (
+          <div className="pub-analytics-loading"><LoaderCircle className="spin" size={23}/><span>Собираем статистику</span></div>
+        ) : publicationStats ? <>
+          <section className="pub-hero">
+            <div className="pub-hero-glow"/>
+            <div className="pub-identity">
+              <div className="pub-channel-avatar">{avatarUrl(selectedPublication || {}) ? <img src={avatarUrl(selectedPublication)} alt=""/> : (selectedPublication?.title || '?').slice(0,1).toUpperCase()}</div>
+              <div className="pub-identity-copy">
+                <span className="pub-eyebrow">СТАТИСТИКА КАНАЛА</span>
+                <h1>{selectedPublication?.title || 'Публикация'}</h1>
+                <div className="pub-identity-meta"><span>{selectedPublication?.username ? `@${selectedPublication.username}` : 'Telegram-сообщество'}</span><i/> <span>{status}</span></div>
+              </div>
+              <button className="pub-telegram-link" onClick={() => openTelegram(selectedPublication?.username)}>Открыть <ExternalLink size={14}/></button>
             </div>
-            <div className="metric-grid analytics-metrics">
-              <Metric icon={ExternalLink} value={fmt(publicationStats.clicks_today)} label="Переходы сегодня"/>
-              <Metric icon={Activity} value={fmt(publicationStats.clicks_week)} label="За 7 дней"/>
-              <Metric icon={Eye} value={fmt(publicationStats.clicks_all)} label="За всё время"/>
-              <Metric icon={ThumbsUp} value={fmt(publicationStats.votes_today)} label="Голосов сегодня"/>
-              <Metric icon={Trophy} value={fmt(publicationStats.votes_all)} label="Всего голосов"/>
+            <div className="pub-hero-divider"/>
+            <div className="pub-traffic-stats">
+              <div className="pub-traffic-stat pub-traffic-stat-featured"><span>Переходы сегодня</span><strong>{fmt(publicationStats.clicks_today)}</strong><small>За текущий день</small></div>
+              <div className="pub-traffic-stat"><span>За 7 дней</span><strong>{fmt(publicationStats.clicks_week)}</strong><small>Последняя неделя</small></div>
+              <div className="pub-traffic-stat"><span>За всё время</span><strong>{fmt(publicationStats.clicks_all)}</strong><small>С момента публикации</small></div>
             </div>
-          </div>
-          <section className="analytics-chart-panel">
-            <div className="analytics-chart-heading"><div><h2>Переходы по дням</h2><p>Последние 14 дней</p></div><span><i/> Переходы</span></div>
-            {points.length ? <div className="analytics-chart">{points.map((point)=><div className="analytics-chart-column" key={point.date}><b>{fmt(point.clicks)}</b><div className="analytics-bar-track"><div className="analytics-bar-fill" style={{height:`${Math.max(Number(point.clicks)>0?5:1, Number(point.clicks || 0) / maxClicks * 100)}%`}}/></div><small>{new Date(`${point.date}T00:00:00`).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}</small></div>)}</div> : <EmptyState text="История переходов пока пуста."/>}
           </section>
-          <p className="analytics-note">Переход засчитывается, когда пользователь нажимает «Открыть в Telegram» в BendorX. Голоса учитываются только действующие.</p>
-        </> : <EmptyState text="Не удалось получить статистику. Вернись в список и попробуй ещё раз."/>}
-      </>
+
+          <section className="pub-chart-card">
+            <div className="pub-section-heading">
+              <div><span className="pub-eyebrow">ДИНАМИКА</span><h2>Переходы по дням</h2><p>Как менялся интерес к публикации</p></div>
+              <div className="pub-chart-period"><span className="pub-chart-dot"/>14 дней</div>
+            </div>
+            {points.length ? (
+              <div className="pub-chart-wrap">
+                <div className="pub-chart-grid"><span>{fmt(maxClicks)}</span><span>{fmt(Math.round(maxClicks / 2))}</span><span>0</span></div>
+                <div className="pub-chart-bars">
+                  {points.map((point) => {
+                    const count = Number(point.clicks || 0);
+                    const height = count > 0 ? Math.max(7, count / maxClicks * 100) : 2;
+                    return <div className="pub-chart-column" key={point.date} title={`${new Date(`${point.date}T00:00:00`).toLocaleDateString('ru-RU')}: ${fmt(count)} переходов`}>
+                      <span className="pub-chart-value">{count ? fmt(count) : ''}</span>
+                      <div className="pub-chart-bar-area"><div className={`pub-chart-bar ${count ? 'has-value' : ''}`} style={{height:`${height}%`}}/></div>
+                      <span className="pub-chart-date">{new Date(`${point.date}T00:00:00`).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})}</span>
+                    </div>;
+                  })}
+                </div>
+              </div>
+            ) : <div className="pub-chart-empty">История переходов появится здесь, когда пользователи начнут открывать канал через BendorX.</div>}
+            <div className="pub-chart-footer"><span>Всего за отображаемый период</span><strong>{fmt(totalPeriodClicks)} переходов</strong></div>
+          </section>
+
+          <section className="pub-votes-card">
+            <div className="pub-votes-icon"><ThumbsUp size={19}/></div>
+            <div className="pub-votes-copy"><span className="pub-eyebrow">РЕАКЦИЯ АУДИТОРИИ</span><h2>Голоса</h2><p>Поддержка пользователей BendorX</p></div>
+            <div className="pub-vote-number"><strong>{fmt(publicationStats.votes_today)}</strong><span>Сегодня</span></div>
+            <div className="pub-votes-divider"/>
+            <div className="pub-vote-number"><strong>{fmt(publicationStats.votes_all)}</strong><span>Всего</span></div>
+          </section>
+          <p className="pub-analytics-footnote">Переход учитывается при открытии Telegram через карточку публикации в BendorX. В статистике голосов показаны действующие голоса.</p>
+        </> : <div className="pub-chart-empty">Не удалось загрузить статистику. Вернись к публикациям и попробуй ещё раз.</div>}
+      </div>
     );
   };
 
