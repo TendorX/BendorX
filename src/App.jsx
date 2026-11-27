@@ -488,7 +488,7 @@ export default function App() {
         <div className="promo-banner-art"><div className="promo-star-orbit"/><Star size={76} fill="currentColor"/></div>
       </section>
       <div className="section-head home-section-heading">
-        <div><div className="eyebrow">ВСЕ ОПУБЛИКОВАННЫЕ СООБЩЕСТВА</div><h2>Все каналы</h2><p className="home-section-note">Сначала сообщества с наибольшим количеством голосов.</p></div>
+        <div><h2>Все каналы</h2><p className="home-section-note">Сначала сообщества с наибольшим количеством голосов.</p></div>
       </div>
       {homeCommunities.length
         ? <div className="community-list">{homeCommunities.map(item=><CommunityCard key={item.id} item={item}/>)}</div>
