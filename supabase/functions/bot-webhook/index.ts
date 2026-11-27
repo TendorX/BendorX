@@ -119,6 +119,8 @@ async function handleSuccessfulPayment(token: string, message: any) {
   }
   const startsAt = new Date();
   const endsAt = new Date(startsAt.getTime() + Number(order.duration_days) * 24 * 60 * 60 * 1000);
+  // There is one advertising slot; the newest successful payment takes it.
+  await dbRequest(`promotions?status=eq.active&id=neq.${Number(order.id)}`, "PATCH", { status: "expired" }, "return=minimal");
   await dbRequest(`promotions?id=eq.${Number(order.id)}&status=eq.pending`, "PATCH", {
     status: "active",
     telegram_payment_charge_id: chargeId,
