@@ -68,6 +68,7 @@ export default function App() {
   const [publicationStatsLoading, setPublicationStatsLoading] = useState(false);
   const [profilePage, setProfilePage] = useState('main');
   const [add, setAdd] = useState({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet' });
+  const [addCategoriesOpen, setAddCategoriesOpen] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -538,17 +539,28 @@ export default function App() {
         <label>Тип сообщества</label><div className="choice-row"><button type="button" className={add.kind === 'channel' ? 'chosen' : ''} onClick={() => setAdd({...add,kind:'channel'})}>Канал</button><button type="button" className={add.kind === 'group' ? 'chosen' : ''} onClick={() => setAdd({...add,kind:'group'})}>Группа / чат</button></div>
         <label>Ссылка Telegram</label><input required value={add.link} onChange={(e) => setAdd({...add,link:e.target.value})} placeholder="https://t.me/your_channel или @username"/>
         <label>Название</label><input required minLength={2} maxLength={80} value={add.title} onChange={(e) => setAdd({...add,title:e.target.value})} placeholder="Название канала или группы"/>
-        <label>Выбери категории <small>от 1 до 3 · выбрано {add.category_ids.length}/3</small></label>
-        <div className="category-grid add-category-grid" role="group" aria-label="Выбор до трёх категорий">
-          {categories.map((c,index)=>{
-            const selected = add.category_ids.includes(Number(c.id));
-            const limitReached = add.category_ids.length >= 3 && !selected;
-            return <button type="button" key={c.id} disabled={limitReached} className={`category-tile ${selected?'category-tile-active':''}`} aria-pressed={selected} onClick={()=>setAdd(current=>({...current,category_ids:selected?current.category_ids.filter(id=>id!==Number(c.id)):[...current.category_ids,Number(c.id)]}))}>
-              <span className={`category-symbol tone-${index%6}`}>{c.icon || '✦'}</span>
-              <span><b>{c.title}</b>{!['покупки и скидки','технологии'].includes(String(c.title || '').trim().toLocaleLowerCase('ru')) && <small>{fmt(c.groups)} сообществ</small>}</span>
-              {selected ? <Check size={17}/> : <ChevronRight size={16}/>}
-            </button>;
-          })}
+        <label>Категории <small>от 1 до 3 · выбрано {add.category_ids.length}/3</small></label>
+        <div className="add-category-selector">
+          <button type="button" className={`add-category-trigger ${addCategoriesOpen ? 'is-open' : ''}`} aria-expanded={addCategoriesOpen} onClick={()=>setAddCategoriesOpen(open=>!open)}>
+            <span className="add-category-trigger-icon"><Grid2X2 size={18}/></span>
+            <span className="add-category-trigger-copy">
+              <b>{add.category_ids.length ? 'Категории выбраны' : 'Выбрать категории'}</b>
+              <small>{add.category_ids.length ? categories.filter(c=>add.category_ids.includes(Number(c.id))).map(c=>c.title).join(' · ') : 'Нажми, чтобы открыть список'}</small>
+            </span>
+            <span className="add-category-trigger-count">{add.category_ids.length}/3</span>
+            <ChevronDown className="add-category-trigger-chevron" size={18}/>
+          </button>
+          {addCategoriesOpen && <div className="category-grid add-category-grid" role="group" aria-label="Выбор до трёх категорий">
+            {categories.map((c,index)=>{
+              const selected = add.category_ids.includes(Number(c.id));
+              const limitReached = add.category_ids.length >= 3 && !selected;
+              return <button type="button" key={c.id} disabled={limitReached} className={`category-tile ${selected?'category-tile-active':''}`} aria-pressed={selected} onClick={()=>setAdd(current=>({...current,category_ids:selected?current.category_ids.filter(id=>id!==Number(c.id)):[...current.category_ids,Number(c.id)]}))}>
+                <span className={`category-symbol tone-${index%6}`}>{c.icon || '✦'}</span>
+                <span><b>{c.title}</b>{!['покупки и скидки','технологии'].includes(String(c.title || '').trim().toLocaleLowerCase('ru')) && <small>{fmt(c.groups)} сообществ</small>}</span>
+                {selected ? <Check size={17}/> : <ChevronRight size={16}/>}
+              </button>;
+            })}
+          </div>}
         </div>
         {!add.category_ids.length && <small className="add-category-hint">Выбери минимум одну категорию. Можно выбрать до трёх.</small>}
         <label>Выбери фон карточки</label>
