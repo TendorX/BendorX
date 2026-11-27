@@ -1171,3 +1171,9 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .promotion-channel-preview p{margin:7px 0 0;color:#b6bdc9;font-size:11px;line-height:1.45;overflow-wrap:anywhere}
 .promotion-preview-warning{display:flex;gap:5px;align-items:flex-start;margin:8px 0;color:#e8c77f;font-size:11px;line-height:1.45}
 .promotion-preview-warning svg{flex:none}
+
+
+/* Управление рекламными размещениями главного администратора */
+.promotion-admin-item{position:relative;width:100%}
+.promotion-remove-button{position:absolute;top:9px;right:9px;z-index:3;display:grid;place-items:center;width:29px;height:29px;border:1px solid #ffffff30;border-radius:9px;background:#11151ddd;color:#ff9b9b;box-shadow:0 3px 12px #0006}
+.promotion-remove-button:hover{background:#642c36;color:#fff}
