@@ -48,6 +48,7 @@ export default function App() {
   const [promotionCommunityId, setPromotionCommunityId] = useState('');
   const [promotionTelegramLink, setPromotionTelegramLink] = useState('');
   const [promotionPreview, setPromotionPreview] = useState(null);
+  const [promotionAvatarPath, setPromotionAvatarPath] = useState('');
   const [promotionPreviewLoading, setPromotionPreviewLoading] = useState(false);
   const [promotionPreviewMessage, setPromotionPreviewMessage] = useState('');
   const [promotionDuration, setPromotionDuration] = useState('3');
@@ -136,26 +137,40 @@ export default function App() {
     setActivePromotions(rows || []);
   }, [api, initData]);
 
+  const removePromotion = async (promotionId) => {
+    if (!window.confirm('Убрать это размещение из баннера? Сам Telegram-канал останется без изменений.')) return;
+    try {
+      await api('promotion_remove', { id: promotionId });
+      await loadPromotions();
+      notify('Размещение удалено из баннера.');
+    } catch (err) {
+      notify(err.message || 'Не удалось убрать размещение.');
+    }
+  };
+
   const fetchPromotionTelegramInfo = async () => {
     const username = parseTelegramLink(promotionTelegramLink);
     if (!username) return notify('Введи корректную публичную ссылку t.me или @username.');
     setPromotionPreviewLoading(true);
     setPromotionPreview(null);
+    setPromotionAvatarPath('');
     setPromotionCommunityId('');
     setPromotionPreviewMessage('');
     try {
       const info = await api('telegram_preview', { username });
-      setPromotionPreview(info);
-      const existing = communities.find(item =>
-        String(item.username || '').replace(/^@/, '').toLowerCase() === username &&
-        item.status === 'approved'
-      );
-      if (existing) {
-        setPromotionCommunityId(String(existing.id));
-        setPromotionPreviewMessage('Канал найден в каталоге и готов к размещению.');
-      } else {
-        setPromotionPreviewMessage('Данные загружены, но канал ещё не опубликован в BendorX. Сначала добавь его во вкладке «Добавить» и дождись одобрения.');
+      let avatarPath = '';
+      if (info.avatar_data) {
+        const avatarBlob = await (await fetch(info.avatar_data)).blob();
+        const signed = await api('upload_url');
+        const { error: uploadError } = await supabase.storage.from('community-media').uploadToSignedUrl(
+          signed.path, signed.token, avatarBlob, { contentType: avatarBlob.type || 'image/jpeg' }
+        );
+        if (uploadError) throw new Error('Не удалось сохранить фотографию канала: ' + uploadError.message);
+        avatarPath = signed.path;
       }
+      setPromotionAvatarPath(avatarPath);
+      setPromotionPreview(info);
+      setPromotionPreviewMessage('Данные загружены. Канал можно сразу разместить в баннере — публикация в каталоге не требуется.');
     } catch (err) {
       notify(err.message || 'Не удалось получить информацию из Telegram.');
     } finally {
@@ -164,12 +179,17 @@ export default function App() {
   };
 
   const startPromotionPurchase = async () => {
-    if (!promotionCommunityId) return notify('Сначала выбери опубликованный канал.');
     const isMasterAdmin = me?.role === 'master_admin';
+    if (isMasterAdmin && !promotionPreview) return notify('Сначала вставь ссылку и нажми «Загрузить».');
+    if (!isMasterAdmin && !promotionCommunityId) return notify('Сначала выбери опубликованный канал.');
     if (!isMasterAdmin && !tg?.openInvoice) return notify('Открой Bendor-X в актуальной версии Telegram, чтобы оплатить Stars.');
     setPromotionPurchasing(true);
     try {
-      const result = await api('promotion_invoice', {
+      const result = await api('promotion_invoice', isMasterAdmin ? {
+        username: promotionPreview.username,
+        avatar_path: promotionAvatarPath,
+        duration_days: Number(promotionDuration)
+      } : {
         community_id: Number(promotionCommunityId),
         duration_days: Number(promotionDuration)
       });
@@ -540,10 +560,29 @@ export default function App() {
   };
 
   const homeCommunities = useMemo(() => [...communities].sort((a, b) => Number(b.votes || 0) - Number(a.votes || 0)), [communities]);
-  const activePromotedCommunities = useMemo(() => {
-    const ids = new Set((activePromotions || []).map((item) => Number(item.community_id)));
-    return homeCommunities.filter((item) => ids.has(Number(item.id)));
-  }, [activePromotions, homeCommunities]);
+  const activePromotedCommunities = useMemo(() => (activePromotions || []).map((promotion) => {
+    if (promotion.community) {
+      return { ...promotion.community, promotion_id: promotion.id, votes: 0, growth: 0, promotion: true };
+    }
+    if (promotion.channel_title) {
+      return {
+        id: `promotion-${promotion.id}`,
+        promotion_id: promotion.id,
+        title: promotion.channel_title,
+        username: promotion.channel_username,
+        link: promotion.channel_link,
+        description: promotion.channel_description || '',
+        kind: promotion.channel_kind || 'channel',
+        avatar_path: promotion.channel_avatar_path || '',
+        votes: 0,
+        growth: 0,
+        category: 'Рекламное размещение',
+        card_theme: 'default',
+        is_external_promotion: true,
+      };
+    }
+    return null;
+  }).filter(Boolean), [activePromotions]);
 
   const filtered = communities;
   const filteredCategories = useMemo(() => {
@@ -554,12 +593,12 @@ export default function App() {
   const votedCommunities = useMemo(() => communities.filter((x) => votedIds.has(Number(x.id))), [communities, votedIds]);
   const myCommunities = me?.communities || [];
   const categoryLabel = (id) => categories.find((x) => Number(x.id) === Number(id))?.title || 'Без категории';
-  const avatarUrl = (item) => media[item.id] ? `${CFG.url}/storage/v1/object/public/community-media/${media[item.id]}` : '';
+  const avatarUrl = (item) => { const path = media[item.id] || item.avatar_path; return path ? `${CFG.url}/storage/v1/object/public/community-media/${path}` : ''; };
 
   const CommunityCard = ({ item, compact = false, badge = '' }) => (
     <article className={`community-card ${compact ? 'compact' : ''} card-theme-${CARD_THEMES.some((theme) => theme.id === item.card_theme) ? item.card_theme : 'default'} ${item.card_emoji ? 'has-card-emoji' : ''}`}>
       {item.card_emoji && <div className="community-emoji-pattern" aria-hidden="true">{Array.from({length:12},(_,i)=><span key={i} className={`emoji-mark emoji-mark-${i+1}`}>{item.card_emoji}</span>)}</div>}
-      <button className="community-main" onClick={() => openCommunity(item)}>
+      <button className="community-main" onClick={() => item.is_external_promotion ? openTelegram(item.username) : openCommunity(item)}>
         {avatarUrl(item) ? <img className="avatar" src={avatarUrl(item)} alt="" /> : <div className="avatar fallback">{(item.title || '?').slice(0, 1).toUpperCase()}</div>}
         <span className="community-copy">
           <strong>{item.title}</strong>
@@ -569,12 +608,12 @@ export default function App() {
           <span className="community-meta"><span><ThumbsUp size={13}/>{fmt(item.votes)}</span><span><Flame size={13}/>{fmt(item.growth)} за 7 дней</span></span>
         </span>
       </button>
-      <div className="community-actions">
+      {!item.is_external_promotion && <div className="community-actions">
         <button className={`icon-button favorite-button ${favoriteIds.has(Number(item.id)) ? 'favorite-selected' : ''}`} title="Избранное" onClick={() => changeFavorite(item.id)}><Bookmark size={17}/></button>
         {voteNoticeIds.has(Number(item.id))
           ? <span className="vote-button vote-confirmed" role="status">Вы проголосовали</span>
           : !votedIds.has(Number(item.id)) && <button className="vote-button" onClick={() => changeVote(item.id)}><ThumbsUp size={15}/> Голос</button>}
-      </div>
+      </div>}
     </article>
   );
 
@@ -596,8 +635,11 @@ export default function App() {
   const renderHome = () => (
     <>
       {activePromotedCommunities.length > 0 && <section className="active-promotion-section">
-        <div className="section-head"><div><div className="eyebrow">ОПЛАЧЕННОЕ РАЗМЕЩЕНИЕ</div><h2>Продвигаются сейчас</h2></div></div>
-        <div className="community-list">{activePromotedCommunities.map(item=><CommunityCard key={item.id} item={item} badge="Реклама"/>)}</div>
+        <div className="section-head"><div><div className="eyebrow">РЕКЛАМНЫЕ РАЗМЕЩЕНИЯ</div><h2>Продвигаются сейчас</h2></div></div>
+        <div className="community-list">{activePromotedCommunities.map(item=><div className="promotion-admin-item" key={item.promotion_id}>
+          <CommunityCard item={item} badge="Реклама"/>
+          {me?.role === 'master_admin' && <button type="button" className="promotion-remove-button" title="Убрать из баннера" aria-label={`Убрать ${item.title} из баннера`} onClick={()=>removePromotion(item.promotion_id)}><X size={15}/></button>}
+        </div>)}</div>
       </section>}
       <section className="promo-banner">
         <div className="promo-banner-content">
@@ -925,12 +967,12 @@ export default function App() {
           <button className="modal-close" onClick={()=>setPromotionOpen(false)} aria-label="Закрыть"><X size={18}/></button>
           <div className="eyebrow"><Star size={13}/> ПРОДВИЖЕНИЕ ЗА TELEGRAM STARS</div>
           <h2>Выставить канал на продвижение</h2>
-          <p className="promotion-modal-copy">Выбери опубликованное сообщество и срок рекламного размещения.</p>
+          <p className="promotion-modal-copy">{me?.role === 'master_admin' ? 'Вставь публичную ссылку Telegram. Размещение доступно даже если канала ещё нет в каталоге.' : 'Выбери своё опубликованное сообщество и срок рекламного размещения.'}</p>
           {!initData ? <TelegramGate/> : <>
             {me?.role === 'master_admin' ? <>
               <label>Ссылка на Telegram-канал</label>
               <div className="telegram-link-loader promotion-telegram-loader">
-                <input value={promotionTelegramLink} onChange={(e)=>{setPromotionTelegramLink(e.target.value);setPromotionPreview(null);setPromotionCommunityId('');setPromotionPreviewMessage('');}} placeholder="https://t.me/your_channel или @username"/>
+                <input value={promotionTelegramLink} onChange={(e)=>{setPromotionTelegramLink(e.target.value);setPromotionPreview(null);setPromotionAvatarPath('');setPromotionCommunityId('');setPromotionPreviewMessage('');}} placeholder="https://t.me/your_channel или @username"/>
                 <button type="button" className="telegram-fetch-button" onClick={fetchPromotionTelegramInfo} disabled={promotionPreviewLoading}>
                   {promotionPreviewLoading ? <LoaderCircle className="spin" size={16}/> : <RefreshCw size={16}/>}
                   {promotionPreviewLoading ? 'Загружаем' : 'Загрузить'}
@@ -940,7 +982,7 @@ export default function App() {
                 {promotionPreview.avatar_data ? <img src={promotionPreview.avatar_data} alt="Фото канала"/> : <div className="promotion-channel-fallback">{(promotionPreview.title || '?').slice(0,1).toUpperCase()}</div>}
                 <div><b>{promotionPreview.title || 'Без названия'}</b><small>@{promotionPreview.username} · {promotionPreview.kind === 'channel' ? 'Канал' : 'Группа / чат'}</small><p>{promotionPreview.description || 'Описание не указано.'}</p></div>
               </div>}
-              {promotionPreviewMessage && <small className={promotionCommunityId ? 'telegram-info-success' : 'promotion-preview-warning'}>{promotionCommunityId ? <Check size={13}/> : <CircleHelp size={13}/>} {promotionPreviewMessage}</small>}
+              {promotionPreviewMessage && <small className="telegram-info-success"><Check size={13}/> {promotionPreviewMessage}</small>}
             </> : <>
               <label>Моё сообщество</label>
               <select className="promotion-select" value={promotionCommunityId} onChange={(e)=>setPromotionCommunityId(e.target.value)}>
@@ -951,7 +993,7 @@ export default function App() {
             <label>Срок размещения</label>
             <div className="promotion-duration-row">{[['1','1 день','50'],['3','3 дня','120'],['7','7 дней','250']].map(([value,label,price])=><button type="button" key={value} className={promotionDuration===value?'active':''} onClick={()=>setPromotionDuration(value)}><span>{label}</span><b>{me?.role === 'master_admin' ? '0 ⭐' : `${price} ⭐`}</b></button>)}</div>
             {me?.role !== 'master_admin' && !myCommunities.some(item=>item.status==='approved') && <p className="promotion-modal-copy">Сначала добавь канал и дождись одобрения модератора. После этого он появится здесь.</p>}
-            <button className="primary-button full" onClick={startPromotionPurchase} disabled={promotionPurchasing || !promotionCommunityId || (me?.role !== 'master_admin' && !myCommunities.some(item=>Number(item.id)===Number(promotionCommunityId) && item.status==='approved'))}>{promotionPurchasing ? (me?.role === 'master_admin' ? 'Размещаем…' : 'Создаём счёт…') : (me?.role === 'master_admin' ? <>Разместить бесплатно <Star size={15} fill="currentColor"/></> : <>Оплатить {({1:50,3:120,7:250})[Number(promotionDuration)]} <Star size={15} fill="currentColor"/></>)}</button>
+            <button className="primary-button full" onClick={startPromotionPurchase} disabled={promotionPurchasing || (me?.role === 'master_admin' ? !promotionPreview : (!promotionCommunityId || !myCommunities.some(item=>Number(item.id)===Number(promotionCommunityId) && item.status==='approved')))}>{promotionPurchasing ? (me?.role === 'master_admin' ? 'Размещаем…' : 'Создаём счёт…') : (me?.role === 'master_admin' ? <>Разместить бесплатно <Star size={15} fill="currentColor"/></> : <>Оплатить {({1:50,3:120,7:250})[Number(promotionDuration)]} <Star size={15} fill="currentColor"/></>)}</button>
           </>}
         </section>
       </div>}
