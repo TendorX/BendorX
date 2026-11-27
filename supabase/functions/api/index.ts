@@ -93,18 +93,36 @@ function positiveInteger(value: unknown) {
 }
 
 // Автоматически подключаем /start webhook при первом запросе главного администратора.
+let webhookReadyUntil = 0;
+
 async function ensureWelcomeWebhook(botToken: string) {
+  // Avoid hammering Telegram setWebhook: it is a configuration operation,
+  // not something that should run on every Mini App API request.
+  if (Date.now() < webhookReadyUntil) return;
+
   const webhookUrl = "https://jbqyndtrbqmvzghqihak.supabase.co/functions/v1/bot-webhook";
   const digest = await crypto.subtle.digest(
     "SHA-256",
     encoder.encode(`${botToken}:bendorx-welcome-webhook-v1`),
   );
   const secretToken = toHex(new Uint8Array(digest));
+  const requiredUpdates = ["message", "pre_checkout_query"];
 
   const infoResponse = await fetch(`https://api.telegram.org/bot${botToken}/getWebhookInfo`);
   const info = await infoResponse.json().catch(() => null);
   if (!infoResponse.ok || info?.ok !== true) {
-    throw new Error("Telegram getWebhookInfo failed");
+    throw new Error(`Telegram getWebhookInfo failed: ${info?.error_code ?? infoResponse.status}`);
+  }
+
+  const currentUpdates = Array.isArray(info.result?.allowed_updates)
+    ? info.result.allowed_updates
+    : [];
+  const webhookIsReady = info.result?.url === webhookUrl &&
+    requiredUpdates.every((update) => currentUpdates.includes(update));
+
+  if (webhookIsReady) {
+    webhookReadyUntil = Date.now() + 10 * 60 * 1000;
+    return;
   }
 
   const setResponse = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook`, {
@@ -113,14 +131,16 @@ async function ensureWelcomeWebhook(botToken: string) {
     body: JSON.stringify({
       url: webhookUrl,
       secret_token: secretToken,
-      allowed_updates: ["message", "pre_checkout_query"],
+      allowed_updates: requiredUpdates,
       drop_pending_updates: false,
     }),
   });
   const setResult = await setResponse.json().catch(() => null);
   if (!setResponse.ok || setResult?.ok !== true) {
-    throw new Error(`Telegram setWebhook failed: ${setResult?.error_code ?? setResponse.status}`);
+    const retryAfter = setResult?.parameters?.retry_after;
+    throw new Error(`Telegram setWebhook failed: ${setResult?.error_code ?? setResponse.status}${retryAfter ? ` (retry after ${retryAfter}s)` : ""}`);
   }
+  webhookReadyUntil = Date.now() + 10 * 60 * 1000;
 }
 
 // Проверка подлинности Telegram initData.
@@ -465,16 +485,6 @@ Deno.serve(async (req: Request) => {
             "Не удалось проверить права администратора",
           );
         }
-      }
-    }
-
-    // Регистрация webhook выполняется безопасно только от главного администратора.
-    // Проверка URL предотвращает повторную настройку на каждом запросе.
-    if (masterTid && String(tid) === masterTid) {
-      try {
-        await ensureWelcomeWebhook(verifiedBotToken);
-      } catch (webhookError) {
-        console.error("Bendor-X welcome webhook setup failed", webhookError instanceof Error ? webhookError.message : "unknown");
       }
     }
 
