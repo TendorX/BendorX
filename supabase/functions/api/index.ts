@@ -16,7 +16,7 @@ const HEADERS = {
 
 const encoder = new TextEncoder();
 const ALLOWED_CARD_THEMES = new Set(['violet','ocean','sunset','emerald','ruby','gold','blue','midnight']);
-const ALLOWED_CARD_FRAMES = new Set(['none','thin','neon','gradient','double','corners','gold']);
+const ALLOWED_CARD_FRAMES = new Set(['none','claws','thorns','chain','royal']);
 const ALLOWED_CARD_EMOJIS = new Set(['✨','🔥','⚡','🚀','💎','🎮','👑','🌸','⭐','🦋','🐼','🎯','💫','🌙','🍀','🎧','🧩','❤️','☀️','🪐']);
 
 class ApiError extends Error {
