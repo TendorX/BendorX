@@ -260,7 +260,7 @@ export default function App() {
   useEffect(() => {
     if (me && isStaff) loadAdmin().catch((err) => notify(err.message));
     if (me?.role === 'master_admin' && tab === 'admin') loadStaff().catch((err) => notify(err.message));
-  }, [me?.role, showDeleted, tab]);
+  }, [me?.role, tab]);
 
   useEffect(() => {
     if (tab === 'rating') loadLeaderboard().catch((err) => notify(err.message));
