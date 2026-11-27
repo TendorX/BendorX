@@ -406,6 +406,7 @@ export default function App() {
         tags: add.tags.split(',').map((x) => x.trim()).filter(Boolean).slice(0, 5).join(','), avatar
       });
       setAdd({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet' });
+      setAddCategoriesOpen(false);
       setImageFile(null); setImagePreview('');
       await reloadEverything(); setTab('profile-publications');
       notify('Заявка отправлена на модерацию');
