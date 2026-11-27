@@ -1177,3 +1177,18 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .promotion-admin-item{position:relative;width:100%}
 .promotion-remove-button{position:absolute;top:9px;right:9px;z-index:3;display:grid;place-items:center;width:29px;height:29px;border:1px solid #ffffff30;border-radius:9px;background:#11151ddd;color:#ff9b9b;box-shadow:0 3px 12px #0006}
 .promotion-remove-button:hover{background:#642c36;color:#fff}
+
+
+/* Single large featured advertising card */
+.promotion-featured-card{margin-bottom:4px}
+.promotion-featured-card .community-card{min-height:176px;padding:24px 26px;gap:20px;border-radius:22px;border-color:rgba(241,189,104,.38);background:linear-gradient(115deg,#25283a 0%,#1c202c 58%,#30271f 100%);box-shadow:0 14px 34px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.045)}
+.promotion-featured-card .community-main{gap:18px}
+.promotion-featured-card .avatar{width:76px;height:76px;border-radius:21px}
+.promotion-featured-card .avatar.fallback{font-size:27px}
+.promotion-featured-card .community-copy{gap:7px}
+.promotion-featured-card .community-copy strong{font-size:20px;line-height:1.25;white-space:normal}
+.promotion-featured-card .community-copy small{font-size:12px}
+.promotion-featured-card .community-description{font-size:13px;line-height:1.55;-webkit-line-clamp:3}
+.promotion-featured-card .community-card-badge{width:max-content;padding:4px 9px;border:1px solid rgba(255,214,133,.28);border-radius:7px;background:rgba(255,201,94,.12);color:#ffda91;font-size:10px;font-weight:800}
+.promotion-featured-card .promotion-remove-button{top:12px;right:12px;width:34px;height:34px}
+@media(max-width:560px){.promotion-featured-card .community-card{min-height:150px;padding:19px 16px;gap:12px;border-radius:18px}.promotion-featured-card .community-main{gap:12px}.promotion-featured-card .avatar{width:62px;height:62px;flex-basis:62px;border-radius:17px}.promotion-featured-card .community-copy strong{font-size:17px}.promotion-featured-card .community-description{font-size:11px;-webkit-line-clamp:3}.promotion-featured-card .community-copy small{font-size:10px}}
