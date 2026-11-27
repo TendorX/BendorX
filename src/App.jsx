@@ -47,6 +47,8 @@ export default function App() {
   const [promotionOpen, setPromotionOpen] = useState(false);
   const [promotionCommunityId, setPromotionCommunityId] = useState('');
   const [promotionDuration, setPromotionDuration] = useState('3');
+  const [promotionPurchasing, setPromotionPurchasing] = useState(false);
+  const [activePromotions, setActivePromotions] = useState([]);
   const [media, setMedia] = useState({});
   const [me, setMe] = useState(null);
   const [subscription, setSubscription] = useState(null);
@@ -122,6 +124,40 @@ export default function App() {
     if (!response.ok) throw new Error(result.error || result.message || `Ошибка сервера (${response.status})`);
     return result.data;
   }, [initData]);
+
+
+  const loadPromotions = useCallback(async () => {
+    if (!initData) { setActivePromotions([]); return; }
+    const rows = await api('active_promotions');
+    setActivePromotions(rows || []);
+  }, [api, initData]);
+
+  const startPromotionPurchase = async () => {
+    if (!promotionCommunityId) return notify('Сначала выбери опубликованный канал.');
+    if (!tg?.openInvoice) return notify('Открой Bendor-X в актуальной версии Telegram, чтобы оплатить Stars.');
+    setPromotionPurchasing(true);
+    try {
+      const invoice = await api('promotion_invoice', {
+        community_id: Number(promotionCommunityId),
+        duration_days: Number(promotionDuration)
+      });
+      tg.openInvoice(invoice.invoice_url, async (status) => {
+        if (status === 'paid') {
+          notify('Оплата получена. Размещение активируется автоматически.');
+          window.setTimeout(() => loadPromotions().catch(() => {}), 1200);
+          setPromotionOpen(false);
+        } else if (status === 'failed') {
+          notify('Не удалось провести оплату. Попробуй ещё раз.');
+        } else if (status === 'cancelled') {
+          notify('Оплата отменена.');
+        }
+      });
+    } catch (err) {
+      notify(err.message || 'Не удалось создать счёт');
+    } finally {
+      setPromotionPurchasing(false);
+    }
+  };
 
   const loadPublic = useCallback(async (opts = {}) => {
     if (!supabase) throw new Error('Не найдена конфигурация Supabase. Проверь config.js.');
@@ -242,6 +278,7 @@ export default function App() {
           }
           await loadPublic();
           await loadMe();
+          await loadPromotions();
         })(),
         new Promise((_, reject) => {
           timeoutId = window.setTimeout(() => {
@@ -257,7 +294,7 @@ export default function App() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [api, loadPublic, loadMe, initData]);
+  }, [api, loadPublic, loadMe, loadPromotions, initData]);
 
   useEffect(() => {
     try { tg?.ready?.(); tg?.expand?.(); tg?.setHeaderColor?.('#111318'); tg?.setBackgroundColor?.('#111318'); } catch {}
@@ -465,6 +502,10 @@ export default function App() {
   };
 
   const homeCommunities = useMemo(() => [...communities].sort((a, b) => Number(b.votes || 0) - Number(a.votes || 0)), [communities]);
+  const activePromotedCommunities = useMemo(() => {
+    const ids = new Set((activePromotions || []).map((item) => Number(item.community_id)));
+    return homeCommunities.filter((item) => ids.has(Number(item.id)));
+  }, [activePromotions, homeCommunities]);
 
   const filtered = communities;
   const filteredCategories = useMemo(() => {
@@ -516,6 +557,10 @@ export default function App() {
 
   const renderHome = () => (
     <>
+      {activePromotedCommunities.length > 0 && <section className="active-promotion-section">
+        <div className="section-head"><div><div className="eyebrow">ОПЛАЧЕННОЕ РАЗМЕЩЕНИЕ</div><h2>Продвигаются сейчас</h2></div></div>
+        <div className="community-list">{activePromotedCommunities.map(item=><CommunityCard key={item.id} item={item} badge="Реклама"/>)}</div>
+      </section>}
       <section className="promo-banner">
         <div className="promo-banner-content">
           <span className="eyebrow"><Star size={13}/> РЕКЛАМНОЕ РАЗМЕЩЕНИЕ</span>
@@ -850,10 +895,9 @@ export default function App() {
               {myCommunities.filter(item=>item.status==='approved').map(item=><option key={item.id} value={item.id}>{item.title}</option>)}
             </select>
             <label>Срок размещения</label>
-            <div className="promotion-duration-row">{[['1','1 день'],['3','3 дня'],['7','7 дней']].map(([value,label])=><button type="button" key={value} className={promotionDuration===value?'active':''} onClick={()=>setPromotionDuration(value)}>{label}</button>)}</div>
+            <div className="promotion-duration-row">{[['1','1 день','50'],['3','3 дня','120'],['7','7 дней','250']].map(([value,label,price])=><button type="button" key={value} className={promotionDuration===value?'active':''} onClick={()=>setPromotionDuration(value)}><span>{label}</span><b>{price} ⭐</b></button>)}</div>
             {!myCommunities.some(item=>item.status==='approved') && <p className="promotion-modal-copy">Сначала добавь канал и дождись одобрения модератора. После этого он появится здесь.</p>}
-            <div className="promotion-coming-soon"><Star size={17}/> Оплата Telegram Stars подключается на серверной стороне. Покупка пока недоступна.</div>
-            <button className="primary-button full" disabled={!promotionCommunityId || !myCommunities.some(item=>Number(item.id)===Number(promotionCommunityId) && item.status==='approved')}>Оплатить Stars — скоро</button>
+            <button className="primary-button full" onClick={startPromotionPurchase} disabled={promotionPurchasing || !promotionCommunityId || !myCommunities.some(item=>Number(item.id)===Number(promotionCommunityId) && item.status==='approved')}>{promotionPurchasing ? 'Создаём счёт…' : <>Оплатить {({1:50,3:120,7:250})[Number(promotionDuration)]} <Star size={15} fill="currentColor"/></>}</button>
           </>}
         </section>
       </div>}
