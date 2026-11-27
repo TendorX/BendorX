@@ -67,7 +67,7 @@ export default function App() {
   const [publicationStats, setPublicationStats] = useState(null);
   const [publicationStatsLoading, setPublicationStatsLoading] = useState(false);
   const [profilePage, setProfilePage] = useState('main');
-  const [add, setAdd] = useState({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_emoji: '✨' });
+  const [add, setAdd] = useState({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_emoji: null });
   const [addCategoriesOpen, setAddCategoriesOpen] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
@@ -402,7 +402,7 @@ export default function App() {
       const avatar = await uploadAvatar();
       await api('submit', {
         username, title: add.title.trim(), description: add.description.trim(),
-        categories: add.category_ids.map(Number), kind: add.kind, card_theme: add.card_theme, card_emoji: add.card_emoji,
+        categories: add.category_ids.map(Number), kind: add.kind, card_theme: add.card_theme, card_emoji: null,
         tags: add.tags.split(',').map((x) => x.trim()).filter(Boolean).slice(0, 5).join(','), avatar
       });
       setAdd({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_emoji: '✨' });
@@ -569,12 +569,7 @@ export default function App() {
         <div className="card-theme-picker" role="group" aria-label="Выбор фона карточки">
           {CARD_THEMES.map((theme) => <button type="button" key={theme.id} className={`card-theme-option card-theme-${theme.id} ${add.card_theme === theme.id ? 'chosen' : ''}`} aria-pressed={add.card_theme === theme.id} onClick={() => setAdd({ ...add, card_theme: theme.id })}><span className="card-theme-swatch"/><b>{theme.label}</b>{add.card_theme === theme.id && <Check size={14}/>}</button>)}
         </div>
-        <label>Эмодзи на фоне</label>
-        <div className="card-emoji-picker" role="group" aria-label="Выбор эмодзи оформления карточки">
-          {['✨','🔥','⚡','🚀','💎','🎮','👑','🌸','⭐','🦋','🐼','🎯','💫','🌙','🍀','🎧','🧩','❤️','☀️','🪐'].map(emoji=><button type="button" key={emoji} className={`card-emoji-option ${add.card_emoji===emoji?'chosen':''}`} aria-pressed={add.card_emoji===emoji} onClick={()=>setAdd(current=>({...current,card_emoji:emoji}))}>{emoji}{add.card_emoji===emoji&&<Check size={12}/>}</button>)}
-        </div>
-        <div className={`card-live-preview card-theme-${add.card_theme} card-preview-emoji`}>
-          <div className="preview-emoji-pattern" aria-hidden="true">{Array.from({length:12},(_,i)=><span key={i} className={`emoji-mark emoji-mark-${i+1}`}>{add.card_emoji}</span>)}</div>
+        <div className={`card-live-preview card-theme-${add.card_theme}`}>
           <div className="card-preview-content"><small>ПРЕДПРОСМОТР КАРТОЧКИ</small><b>{add.title.trim() || 'Название твоего канала'}</b><span>{add.description.trim() || 'Здесь будет отображаться описание сообщества'}</span></div>
         </div>
         <label>Описание <small>до 500 символов</small></label><textarea rows={4} maxLength={500} value={add.description} onChange={(e) => setAdd({...add,description:e.target.value})} placeholder="Чем полезно ваше сообщество?"/>
