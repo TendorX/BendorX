@@ -682,9 +682,10 @@ Deno.serve(async (req: Request) => {
 
             if (communityError || !moderatedCommunity) {
               console.error("Moderation notification: community lookup failed", communityError?.code ?? "NOT_FOUND");
-            } else if (moderatorError) {
-              console.error("Moderation notification: moderator lookup failed", moderatorError.code);
             } else {
+              if (moderatorError) {
+                console.warn("Moderation notification: moderator profile unavailable", moderatorError.code);
+              }
               const kindLabel = moderatedCommunity.kind === "channel" ? "канал" : "группу / чат";
               const publicationTitle = cleanText(moderatedCommunity.title, 80);
               const publicationLink = cleanText(moderatedCommunity.username, 40);
