@@ -608,7 +608,7 @@ export default function App() {
           {!item.is_external_promotion && <span className="community-meta"><span><ThumbsUp size={13}/>{fmt(item.votes)}</span><span><Flame size={13}/>{fmt(item.growth)} за 7 дней</span></span>}
         </span>
       </button>
-      {featured && item.username && <button type="button" className="featured-visit-button" onClick={() => openTelegram(item.username)}>Заглянуть <ArrowUpRight size={16}/></button>}
+      {featured && item.username && <button type="button" className="featured-visit-button" onClick={() => openTelegram(item.username)}>Заглянуть <ExternalLink size={16}/></button>}
       {!item.is_external_promotion && <div className="community-actions">
         <button className={`icon-button favorite-button ${favoriteIds.has(Number(item.id)) ? 'favorite-selected' : ''}`} title="Избранное" onClick={() => changeFavorite(item.id)}><Bookmark size={17}/></button>
         {voteNoticeIds.has(Number(item.id))
