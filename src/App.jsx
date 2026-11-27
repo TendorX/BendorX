@@ -75,6 +75,7 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false);
   const [fetchingTelegramInfo, setFetchingTelegramInfo] = useState(false);
   const [telegramInfoLoaded, setTelegramInfoLoaded] = useState(false);
+  const [telegramAvatarLoaded, setTelegramAvatarLoaded] = useState(false);
   const [queue, setQueue] = useState([]);
   const [selectedQueueItem, setSelectedQueueItem] = useState(null);
   const [stats, setStats] = useState(null);
@@ -398,6 +399,7 @@ export default function App() {
     if (!username) return notify('Сначала введи корректную публичную ссылку t.me или @username.');
     setFetchingTelegramInfo(true);
     setTelegramInfoLoaded(false);
+    setTelegramAvatarLoaded(false);
     try {
       const info = await api('telegram_preview', { username });
       setAdd(current => ({
@@ -412,6 +414,7 @@ export default function App() {
         const file = new File([imageBlob], 'telegram-avatar.jpg', { type: imageBlob.type || 'image/jpeg' });
         setImageFile(file);
         setImagePreview(info.avatar_data);
+        setTelegramAvatarLoaded(true);
       }
       setTelegramInfoLoaded(true);
       notify(info.avatar_data ? 'Данные и фотография загружены. Можешь всё отредактировать.' : 'Данные загружены. Фотографию можно добавить вручную.');
@@ -439,7 +442,7 @@ export default function App() {
       });
       setAdd({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_emoji: null });
       setAddCategoriesOpen(false);
-      setImageFile(null); setImagePreview('');
+      setImageFile(null); setImagePreview(''); setTelegramInfoLoaded(false); setTelegramAvatarLoaded(false);
       await reloadEverything(); setTab('profile-publications');
       notify('Заявка отправлена на модерацию');
     } catch (err) { notify(err.message); }
@@ -622,7 +625,7 @@ export default function App() {
         </div>
         <label>Описание <small>до 500 символов</small></label><textarea rows={4} maxLength={500} value={add.description} onChange={(e) => setAdd({...add,description:e.target.value})} placeholder="Чем полезно ваше сообщество?"/>
         <label>Теги <small>через запятую, максимум 5</small></label><input value={add.tags} onChange={(e) => setAdd({...add,tags:e.target.value})} placeholder="Новости, технологии, обучение"/>
-        <div className="upload-box"><div className="upload-preview">{imagePreview ? <img src={imagePreview} alt="Предпросмотр"/> : <ImagePlus size={24}/>}</div><div><b>Аватар сообщества</b><small>{telegramInfoLoaded && imagePreview ? 'Загружен из Telegram · можно заменить вручную' : 'Необязательно · JPG, PNG или WebP · до 8 МБ'}</small><label className="upload-link">Выбрать изображение<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e)=>{const f=e.target.files?.[0];if(!f)return;setImageFile(f);setImagePreview(URL.createObjectURL(f));}}/></label></div></div>
+        <div className="upload-box"><div className="upload-preview">{imagePreview ? <img src={imagePreview} alt="Предпросмотр"/> : <ImagePlus size={24}/>}</div><div><b>Аватар сообщества</b><small>{telegramAvatarLoaded ? 'Загружен из Telegram · можно заменить вручную' : 'Необязательно · JPG, PNG или WebP · до 8 МБ'}</small><label className="upload-link">Выбрать изображение<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e)=>{const f=e.target.files?.[0];if(!f)return;setImageFile(f);setImagePreview(URL.createObjectURL(f));setTelegramAvatarLoaded(false);}}/></label></div></div>
         <button className="primary-button full" disabled={submitting}>{submitting ? <LoaderCircle className="spin" size={17}/> : <Send size={16}/>} Отправить на модерацию</button>
       </form>}
     </>
