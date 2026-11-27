@@ -547,7 +547,7 @@ export default function App() {
             const limitReached = add.category_ids.length >= 3 && !selected;
             return <button type="button" key={c.id} disabled={limitReached} className={`category-tile ${selected?'category-tile-active':''}`} aria-pressed={selected} onClick={()=>setAdd(current=>({...current,category_ids:selected?current.category_ids.filter(id=>id!==Number(c.id)):[...current.category_ids,Number(c.id)]}))}>
               <span className={`category-symbol tone-${index%6}`}>{c.icon || '✦'}</span>
-              <span><b>{c.title}</b><small>{fmt(c.groups)} сообществ</small></span>
+              <span><b>{c.title}</b>{!['покупки и скидки','технологии'].includes(String(c.title || '').trim().toLocaleLowerCase('ru')) && <small>{fmt(c.groups)} сообществ</small>}</span>
               {selected ? <Check size={17}/> : <ChevronRight size={16}/>}
             </button>;
           })}
