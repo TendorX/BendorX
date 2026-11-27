@@ -664,15 +664,14 @@ Deno.serve(async (req: Request) => {
           p_reason: moderationReason,
         });
 
-        // Уведомление в тот же закрытый чат отправляем только после
-        // успешного изменения статуса заявки. Ошибка Telegram не отменяет модерацию.
-        const adminChatId = (Deno.env.get("BENDORX_ADMIN_CHAT_ID") || "").trim();
-        if (adminChatId && ["approved", "rejected"].includes(moderationStatus)) {
+        // После успешного решения модерации уведомляем владельца публикации
+        // в личные сообщения. Недоступность Telegram-уведомления не отменяет решение.
+        if (["approved", "rejected"].includes(moderationStatus)) {
           try {
             const [{ data: moderatedCommunity, error: communityError },
               { data: moderatorProfile, error: moderatorError }] = await Promise.all([
               db.from("communities")
-                .select("id,title,kind")
+                .select("id,title,username,kind,owner_tid")
                 .eq("id", applicationId)
                 .maybeSingle(),
               db.from("profiles")
@@ -686,48 +685,94 @@ Deno.serve(async (req: Request) => {
             } else if (moderatorError) {
               console.error("Moderation notification: moderator lookup failed", moderatorError.code);
             } else {
-              const role = String(moderatorProfile?.role || "").toLowerCase();
-              const roleLabel = ["master_admin", "admin", "administrator"].includes(role)
-                ? "администратор"
-                : "модератор";
-              const moderatorLabel = [
-                displayName,
-                user.username ? `@${cleanText(user.username, 32)}` : "",
-              ].filter(Boolean).join(" ");
-              const kindLabel = moderatedCommunity.kind === "channel"
-                ? "канал"
-                : "группа / чат";
-              const message = moderationStatus === "approved"
-                ? [
-                    "✅ ЗАЯВКА ОДОБРЕНА",
-                    "",
-                    `Заявка №: ${moderatedCommunity.id}`,
-                    `Название: ${cleanText(moderatedCommunity.title, 80)}`,
-                    `Тип: ${kindLabel}`,
-                    `Одобрил: ${roleLabel} ${moderatorLabel}`,
-                  ].join("\n")
-                : [
-                    "❌ ЗАЯВКА ОТКЛОНЕНА",
-                    "",
-                    `Заявка №: ${moderatedCommunity.id}`,
-                    `Название: ${cleanText(moderatedCommunity.title, 80)}`,
-                    `Тип: ${kindLabel}`,
-                    `Отклонил: ${roleLabel} ${moderatorLabel}`,
-                    `Причина: ${moderationReason || "не указана"}`,
-                  ].join("\n");
+              const kindLabel = moderatedCommunity.kind === "channel" ? "канал" : "группу / чат";
+              const publicationTitle = cleanText(moderatedCommunity.title, 80);
+              const publicationLink = cleanText(moderatedCommunity.username, 40);
+              const ownerTid = Number(moderatedCommunity.owner_tid);
 
-              const telegramResponse = await fetch(`https://api.telegram.org/bot${verifiedBotToken}/sendMessage`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  chat_id: adminChatId,
-                  text: message,
-                  disable_web_page_preview: true,
-                }),
-              });
-              const telegramResult = await telegramResponse.json();
-              if (!telegramResponse.ok || telegramResult?.ok !== true) {
-                console.error("Moderation Telegram notification failed", telegramResult?.error_code ?? telegramResponse.status);
+              if (Number.isSafeInteger(ownerTid) && ownerTid > 0) {
+                const userMessage = moderationStatus === "approved"
+                  ? [
+                      "🎉 ВАША ПУБЛИКАЦИЯ ОДОБРЕНА!",
+                      "",
+                      `Ваш ${kindLabel} «${publicationTitle}» успешно прошёл модерацию и теперь доступен в каталоге BendorX.`,
+                      publicationLink ? `Открыть: https://t.me/${publicationLink.replace(/^@/, "")}` : "",
+                      "",
+                      "Спасибо, что развиваете наше сообщество! 🚀",
+                    ].filter(Boolean).join("\n")
+                  : [
+                      "❌ ВАША ПУБЛИКАЦИЯ ОТКЛОНЕНА",
+                      "",
+                      `К сожалению, ${kindLabel} «${publicationTitle}» не прошёл модерацию.`,
+                      "",
+                      `Причина: ${moderationReason || "не указана"}`,
+                      "",
+                      "Исправьте замечания и отправьте публикацию повторно.",
+                    ].join("\n");
+
+                const userTelegramResponse = await fetch(`https://api.telegram.org/bot${verifiedBotToken}/sendMessage`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    chat_id: ownerTid,
+                    text: userMessage,
+                    disable_web_page_preview: true,
+                  }),
+                });
+                const userTelegramResult = await userTelegramResponse.json().catch(() => null);
+                if (!userTelegramResponse.ok || userTelegramResult?.ok !== true) {
+                  console.warn("Publication owner Telegram notification failed", {
+                    error_code: userTelegramResult?.error_code ?? userTelegramResponse.status,
+                    owner_tid: ownerTid,
+                  });
+                }
+              } else {
+                console.warn("Publication owner Telegram notification skipped: owner_tid is missing", applicationId);
+              }
+
+              // Сохраняем существующее уведомление в закрытый чат администраторов.
+              const adminChatId = (Deno.env.get("BENDORX_ADMIN_CHAT_ID") || "").trim();
+              if (adminChatId) {
+                const role = String(moderatorProfile?.role || "").toLowerCase();
+                const roleLabel = ["master_admin", "admin", "administrator"].includes(role)
+                  ? "администратор"
+                  : "модератор";
+                const moderatorLabel = [
+                  displayName,
+                  user.username ? `@${cleanText(user.username, 32)}` : "",
+                ].filter(Boolean).join(" ");
+                const adminMessage = moderationStatus === "approved"
+                  ? [
+                      "✅ ЗАЯВКА ОДОБРЕНА",
+                      "",
+                      `Заявка №: ${moderatedCommunity.id}`,
+                      `Название: ${publicationTitle}`,
+                      `Тип: ${kindLabel}`,
+                      `Одобрил: ${roleLabel} ${moderatorLabel}`,
+                    ].join("\n")
+                  : [
+                      "❌ ЗАЯВКА ОТКЛОНЕНА",
+                      "",
+                      `Заявка №: ${moderatedCommunity.id}`,
+                      `Название: ${publicationTitle}`,
+                      `Тип: ${kindLabel}`,
+                      `Отклонил: ${roleLabel} ${moderatorLabel}`,
+                      `Причина: ${moderationReason || "не указана"}`,
+                    ].join("\n");
+
+                const adminTelegramResponse = await fetch(`https://api.telegram.org/bot${verifiedBotToken}/sendMessage`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    chat_id: adminChatId,
+                    text: adminMessage,
+                    disable_web_page_preview: true,
+                  }),
+                });
+                const adminTelegramResult = await adminTelegramResponse.json().catch(() => null);
+                if (!adminTelegramResponse.ok || adminTelegramResult?.ok !== true) {
+                  console.error("Moderation admin Telegram notification failed", adminTelegramResult?.error_code ?? adminTelegramResponse.status);
+                }
               }
             }
           } catch (notificationError) {
