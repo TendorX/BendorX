@@ -1120,6 +1120,21 @@ Deno.serve(async (req: Request) => {
         data = await rpc("tx_notes_read", { p_tid: tid, p_id: body.id ? positiveInteger(body.id) : null });
         break;
       }
+      case "notes_delete_read": {
+        const { data: actor, error: actorError } = await db
+          .from("profiles").select("banned").eq("tid", tid).maybeSingle();
+        if (actorError || actor?.banned) {
+          throw new ApiError(403, "Недостаточно прав");
+        }
+        const { data: deleted, error: deleteError } = await db
+          .from("notifications").delete().eq("tid", tid).not("read_at", "is", null).select("id");
+        if (deleteError) {
+          console.error("Read notifications delete failed:", deleteError.code);
+          throw new ApiError(500, "Не удалось удалить прочитанные уведомления");
+        }
+        data = deleted?.length || 0;
+        break;
+      }
       case "admin_delete": {
         const { data: actor, error: actorError } = await db
           .from("profiles").select("role,banned").eq("tid", tid).maybeSingle();
