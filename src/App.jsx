@@ -635,15 +635,15 @@ export default function App() {
   const renderHome = () => (
     <>
       {activePromotedCommunities.length > 0 && <section className="active-promotion-section">
-        <div className="section-head"><div><div className="eyebrow">РЕКЛАМНЫЕ РАЗМЕЩЕНИЯ</div><h2>Продвигаются сейчас</h2></div></div>
+        <div className="section-head"><div><h2>Самый популярный канал</h2></div></div>
         <div className="community-list">{activePromotedCommunities.slice(0, 1).map(item=><div className="promotion-admin-item promotion-featured-card" key={item.promotion_id}>
-          <CommunityCard item={item} badge="Реклама"/>
+          <CommunityCard item={item}/> 
           {me?.role === 'master_admin' && <button type="button" className="promotion-remove-button" title="Убрать из баннера" aria-label={`Убрать ${item.title} из баннера`} onClick={()=>removePromotion(item.promotion_id)}><X size={15}/></button>}
         </div>)}</div>
       </section>}
       {activePromotedCommunities.length === 0 && <section className="promo-banner">
         <div className="promo-banner-content">
-          <span className="eyebrow"><Star size={13}/> РЕКЛАМНОЕ РАЗМЕЩЕНИЕ</span>
+          <span className="eyebrow"><Star size={13}/> ПРОДВИЖЕНИЕ КАНАЛА</span>
           <h1>Продвинь свой канал<br/><em>в Bendor-X</em></h1>
           <p>Покажи своё сообщество пользователям платформы. Выбери канал и срок продвижения за Telegram Stars.</p>
           <button className="primary-button promo-banner-button" onClick={()=>setPromotionOpen(true)}>Продвинуть за <Star size={15} fill="currentColor"/> Stars</button>
