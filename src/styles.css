@@ -1025,8 +1025,8 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .community-card.has-card-emoji .community-emoji-pattern{z-index:0}
 .community-card.has-card-emoji .community-emoji-pattern .emoji-mark{font-size:27px;opacity:.14}
 .community-card.has-card-emoji .community-main,.community-card.has-card-emoji .community-actions{z-index:1}
-.community-card.has-card-emoji .community-copy>strong{display:inline-block;width:fit-content;max-width:100%;padding:4px 9px;border:1px solid rgba(255,255,255,.22);border-radius:8px;background:rgba(10,12,19,.48);color:#fff;font-weight:850;text-shadow:0 1px 3px rgba(0,0,0,.55);box-shadow:0 3px 10px rgba(0,0,0,.12)}
-.community-card.has-card-emoji .community-copy>small,.community-card.has-card-emoji .community-description,.community-card.has-card-emoji .community-meta{position:relative;width:fit-content;max-width:100%;padding:3px 7px;border-radius:7px;background:rgba(10,12,19,.42);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.55)}
+
+
 .community-card.has-card-emoji .community-description{line-height:1.5}
 @media(max-width:560px){.card-emoji-picker{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.card-emoji-option{font-size:23px}.preview-emoji-pattern .emoji-mark{font-size:25px}.community-card.has-card-emoji .community-emoji-pattern .emoji-mark{font-size:23px}}
 
@@ -1106,3 +1106,7 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
   .preview-emoji-pattern .emoji-mark{font-size:25px}
   .community-card.has-card-emoji .community-emoji-pattern .emoji-mark{font-size:22px}
 }
+
+/* BendorX: clean card typography, no emoji wallpaper or text frames */
+.community-card.has-card-emoji .community-copy>strong,.community-card.has-card-emoji .community-copy>small,.community-card.has-card-emoji .community-description,.community-card.has-card-emoji .community-meta{padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;text-shadow:none!important;width:auto!important}
+.community-card.has-card-emoji .community-emoji-pattern{display:none!important}
