@@ -73,6 +73,8 @@ export default function App() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [fetchingTelegramInfo, setFetchingTelegramInfo] = useState(false);
+  const [telegramInfoLoaded, setTelegramInfoLoaded] = useState(false);
   const [queue, setQueue] = useState([]);
   const [selectedQueueItem, setSelectedQueueItem] = useState(null);
   const [stats, setStats] = useState(null);
@@ -391,6 +393,35 @@ export default function App() {
     return signed.path;
   };
 
+  const fetchTelegramInfo = async () => {
+    const username = parseTelegramLink(add.link);
+    if (!username) return notify('Сначала введи корректную публичную ссылку t.me или @username.');
+    setFetchingTelegramInfo(true);
+    setTelegramInfoLoaded(false);
+    try {
+      const info = await api('telegram_preview', { username });
+      setAdd(current => ({
+        ...current,
+        title: info.title || current.title,
+        description: info.description || current.description,
+        kind: info.kind || current.kind,
+        link: current.link
+      }));
+      if (info.avatar_data) {
+        const imageBlob = await (await fetch(info.avatar_data)).blob();
+        const file = new File([imageBlob], 'telegram-avatar.jpg', { type: imageBlob.type || 'image/jpeg' });
+        setImageFile(file);
+        setImagePreview(info.avatar_data);
+      }
+      setTelegramInfoLoaded(true);
+      notify(info.avatar_data ? 'Данные и фотография загружены. Можешь всё отредактировать.' : 'Данные загружены. Фотографию можно добавить вручную.');
+    } catch (err) {
+      notify(err.message || 'Не удалось получить информацию из Telegram.');
+    } finally {
+      setFetchingTelegramInfo(false);
+    }
+  };
+
   const submitCommunity = async (event) => {
     event.preventDefault();
     const username = parseTelegramLink(add.link);
@@ -540,7 +571,15 @@ export default function App() {
       {!initData ? <TelegramGate/> : <form className="form-panel" onSubmit={submitCommunity}>
         <div className="form-section-title"><span>01</span><div><b>Основная информация</b><small>Расскажи о своём сообществе</small></div></div>
         <label>Тип сообщества</label><div className="choice-row"><button type="button" className={add.kind === 'channel' ? 'chosen' : ''} onClick={() => setAdd({...add,kind:'channel'})}>Канал</button><button type="button" className={add.kind === 'group' ? 'chosen' : ''} onClick={() => setAdd({...add,kind:'group'})}>Группа / чат</button></div>
-        <label>Ссылка Telegram</label><input required value={add.link} onChange={(e) => setAdd({...add,link:e.target.value})} placeholder="https://t.me/your_channel или @username"/>
+        <label>Ссылка Telegram</label>
+        <div className="telegram-link-loader">
+          <input required value={add.link} onChange={(e) => { setAdd({...add,link:e.target.value}); setTelegramInfoLoaded(false); }} placeholder="https://t.me/your_channel или @username"/>
+          <button type="button" className="telegram-fetch-button" onClick={fetchTelegramInfo} disabled={fetchingTelegramInfo}>
+            {fetchingTelegramInfo ? <LoaderCircle className="spin" size={16}/> : <RefreshCw size={16}/>}
+            {fetchingTelegramInfo ? 'Загружаем' : 'Загрузить'}
+          </button>
+        </div>
+        {telegramInfoLoaded && <small className="telegram-info-success"><Check size={13}/> Данные Telegram загружены — поля ниже можно редактировать.</small>}
         <label>Название</label><input required minLength={2} maxLength={80} value={add.title} onChange={(e) => setAdd({...add,title:e.target.value})} placeholder="Название канала или группы"/>
         <label>Категории <small>от 1 до 3 · выбрано {add.category_ids.length}/3</small></label>
         <div className="add-category-selector">
@@ -583,7 +622,7 @@ export default function App() {
         </div>
         <label>Описание <small>до 500 символов</small></label><textarea rows={4} maxLength={500} value={add.description} onChange={(e) => setAdd({...add,description:e.target.value})} placeholder="Чем полезно ваше сообщество?"/>
         <label>Теги <small>через запятую, максимум 5</small></label><input value={add.tags} onChange={(e) => setAdd({...add,tags:e.target.value})} placeholder="Новости, технологии, обучение"/>
-        <div className="upload-box"><div className="upload-preview">{imagePreview ? <img src={imagePreview} alt="Предпросмотр"/> : <ImagePlus size={24}/>}</div><div><b>Аватар сообщества</b><small>Необязательно · JPG, PNG или WebP · до 8 МБ</small><label className="upload-link">Выбрать изображение<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e)=>{const f=e.target.files?.[0];if(!f)return;setImageFile(f);setImagePreview(URL.createObjectURL(f));}}/></label></div></div>
+        <div className="upload-box"><div className="upload-preview">{imagePreview ? <img src={imagePreview} alt="Предпросмотр"/> : <ImagePlus size={24}/>}</div><div><b>Аватар сообщества</b><small>{telegramInfoLoaded && imagePreview ? 'Загружен из Telegram · можно заменить вручную' : 'Необязательно · JPG, PNG или WebP · до 8 МБ'}</small><label className="upload-link">Выбрать изображение<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e)=>{const f=e.target.files?.[0];if(!f)return;setImageFile(f);setImagePreview(URL.createObjectURL(f));}}/></label></div></div>
         <button className="primary-button full" disabled={submitting}>{submitting ? <LoaderCircle className="spin" size={17}/> : <Send size={16}/>} Отправить на модерацию</button>
       </form>}
     </>
