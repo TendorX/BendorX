@@ -1029,3 +1029,80 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .community-card.has-card-emoji .community-copy>small,.community-card.has-card-emoji .community-description,.community-card.has-card-emoji .community-meta{position:relative;width:fit-content;max-width:100%;padding:3px 7px;border-radius:7px;background:rgba(10,12,19,.42);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.55)}
 .community-card.has-card-emoji .community-description{line-height:1.5}
 @media(max-width:560px){.card-emoji-picker{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.card-emoji-option{font-size:23px}.preview-emoji-pattern .emoji-mark{font-size:25px}.community-card.has-card-emoji .community-emoji-pattern .emoji-mark{font-size:23px}}
+
+
+/* BendorX emoji wallpaper — scattered layout and dark premium picker */
+.card-emoji-picker{
+  padding:10px;
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:16px;
+  background:linear-gradient(145deg,rgba(31,33,44,.92),rgba(18,20,27,.96));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+}
+.add-form .card-emoji-picker .card-emoji-option,
+.card-emoji-picker button.card-emoji-option{
+  appearance:none;
+  -webkit-appearance:none;
+  background:linear-gradient(145deg,#252936 0%,#191d27 100%) !important;
+  color:#f5f1ff !important;
+  border:1px solid rgba(255,255,255,.09) !important;
+  border-radius:13px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 4px 10px rgba(0,0,0,.14);
+}
+.add-form .card-emoji-picker .card-emoji-option:hover,
+.card-emoji-picker button.card-emoji-option:hover{
+  background:linear-gradient(145deg,#343044,#222433) !important;
+  border-color:rgba(191,171,255,.42) !important;
+}
+.add-form .card-emoji-picker .card-emoji-option.chosen,
+.card-emoji-picker button.card-emoji-option.chosen{
+  background:linear-gradient(145deg,#59451f 0%,#302719 100%) !important;
+  border-color:#f2c75a !important;
+  color:#fff4cb !important;
+  box-shadow:0 0 0 1px rgba(242,199,90,.22),0 5px 16px rgba(0,0,0,.25);
+}
+.card-live-preview.card-preview-emoji{position:relative;isolation:isolate;overflow:hidden}
+.card-preview-emoji .preview-emoji-pattern{
+  position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+}
+.card-preview-emoji .card-preview-content{position:relative;z-index:1}
+.community-card.has-card-emoji{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+}
+.community-card.has-card-emoji .community-emoji-pattern{
+  position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+}
+.community-card.has-card-emoji .community-main,
+.community-card.has-card-emoji .community-actions{position:relative;z-index:1}
+.emoji-mark{position:absolute;display:block;line-height:1;white-space:nowrap;user-select:none;pointer-events:none}
+.preview-emoji-pattern .emoji-mark{
+  font-size:clamp(23px,4vw,36px);
+  opacity:.24;
+  filter:drop-shadow(0 3px 7px rgba(0,0,0,.3));
+}
+.community-card.has-card-emoji .community-emoji-pattern .emoji-mark{
+  font-size:clamp(20px,3vw,30px);
+  opacity:.19;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.28));
+}
+/* Irregular positions intentionally avoid a straight row or regular grid. */
+.emoji-mark-1{left:4%;top:13%;transform:rotate(-22deg) scale(.82)}
+.emoji-mark-2{left:24%;top:5%;transform:rotate(17deg) scale(1.08)}
+.emoji-mark-3{right:39%;top:17%;transform:rotate(-9deg) scale(.72)}
+.emoji-mark-4{right:8%;top:7%;transform:rotate(24deg) scale(1.22)}
+.emoji-mark-5{left:12%;top:57%;transform:rotate(13deg) scale(1.12)}
+.emoji-mark-6{left:43%;top:43%;transform:rotate(-19deg) scale(.9)}
+.emoji-mark-7{right:15%;top:48%;transform:rotate(11deg) scale(.78)}
+.emoji-mark-8{left:3%;bottom:7%;transform:rotate(-13deg) scale(.9)}
+.emoji-mark-9{left:31%;bottom:10%;transform:rotate(21deg) scale(1.2)}
+.emoji-mark-10{right:42%;bottom:3%;transform:rotate(-25deg) scale(.7)}
+.emoji-mark-11{right:5%;bottom:15%;transform:rotate(15deg) scale(1.08)}
+.emoji-mark-12{left:67%;top:4%;transform:rotate(-12deg) scale(.86)}
+@media(max-width:560px){
+  .card-emoji-picker{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:9px}
+  .card-emoji-option{font-size:23px}
+  .preview-emoji-pattern .emoji-mark{font-size:25px}
+  .community-card.has-card-emoji .community-emoji-pattern .emoji-mark{font-size:22px}
+}
