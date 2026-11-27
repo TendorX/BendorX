@@ -77,7 +77,6 @@ export default function App() {
   const [staffMembers, setStaffMembers] = useState([]);
   const [staffLoading, setStaffLoading] = useState(false);
   const [staffSaving, setStaffSaving] = useState(false);
-  const [showDeleted, setShowDeleted] = useState(false);
   const [rejecting, setRejecting] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -181,9 +180,9 @@ export default function App() {
   const loadAdmin = useCallback(async () => {
     if (!initData || !STAFF.includes(me?.role)) return;
     const [q, s] = await Promise.all([api('queue'), api('stats')]);
-    const all = canManage ? await api('admin_list', { deleted: showDeleted }) : [];
+    const all = canManage ? await api('admin_list', { deleted: false }) : [];
     setQueue(q || []); setStats(s || null); setAdminItems(all || []);
-  }, [api, initData, me?.role, showDeleted, canManage]);
+  }, [api, initData, me?.role, canManage]);
 
   const loadStaff = useCallback(async () => {
     if (!initData || me?.role !== 'master_admin') return;
@@ -408,10 +407,6 @@ export default function App() {
   const adminDelete = async (item) => {
     if (!window.confirm(`Полностью удалить «${item.title}»? Запись, голоса и избранное будут удалены без возможности восстановления. После этого сообщество можно будет подать заново.`)) return;
     try { await api('admin_delete', { id: item.id }); await reloadEverything(); notify('Сообщество удалено'); }
-    catch (err) { notify(err.message); }
-  };
-  const adminRestore = async (item) => {
-    try { await api('admin_restore', { id: item.id }); await reloadEverything(); notify('Сообщество восстановлено'); }
     catch (err) { notify(err.message); }
   };
 
@@ -670,8 +665,8 @@ export default function App() {
           </button>
           <div className="queue-actions">{canModerate && <><button className="approve-button" onClick={()=>moderate(item,'approved')}><Check size={15}/> Одобрить</button><button className="reject-button" onClick={()=>{setSelectedQueueItem(null);setRejecting(item);setRejectReason('');}}><X size={15}/> Отклонить</button></>}</div>
         </article>):<EmptyState text="Очередь модерации пуста."/>}
-        <div className="section-head"><h3>Публикации</h3><button className="text-action" onClick={()=>setShowDeleted(!showDeleted)}>{showDeleted?'Активные':'Удалённые'}</button></div>
-        {canManage && adminItems.map(item=><div className="my-pub" key={item.id}><div><b>{item.title}</b><small>@{item.username} · {item.status}</small></div>{showDeleted?<button className="icon-button" onClick={()=>adminRestore(item)}><RefreshCw size={16}/></button>:<button className="icon-button danger" onClick={()=>adminDelete(item)}><Trash2 size={16}/></button>}</div>)}
+        <div className="section-head"><h3>Публикации</h3><button className="text-action" onClick={()=>loadAdmin().catch(e=>notify(e.message))}>Обновить</button></div>
+        {canManage && (adminItems.length ? adminItems.map(item=><div className="my-pub" key={item.id}><div><b>{item.title}</b><small>@{item.username} · {item.status}</small></div><button className="icon-button danger" aria-label={`Полностью удалить ${item.title}`} onClick={()=>adminDelete(item)}><Trash2 size={16}/></button></div>) : <EmptyState text="Опубликованных сообществ пока нет."/>)}
       </div>}
     </>
   );
