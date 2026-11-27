@@ -508,7 +508,14 @@ Deno.serve(async (req: Request) => {
           console.error("Active promotions lookup failed:", activeError.code);
           throw new ApiError(500, "Не удалось загрузить рекламные размещения");
         }
-        data = active || [];
+        const visible = active || [];
+        if (visible.length > 1) {
+          const duplicateIds = visible.slice(1).map((row: any) => row.id);
+          const { error: cleanupError } = await db.from("promotions")
+            .update({ status: "expired" }).in("id", duplicateIds).eq("status", "active");
+          if (cleanupError) console.error("Duplicate active promotions cleanup failed:", cleanupError.code);
+        }
+        data = visible.slice(0, 1);
         break;
       }
 
@@ -545,6 +552,9 @@ Deno.serve(async (req: Request) => {
           const title = cleanText(chat.title || "", 80);
           if (title.length < 2) throw new ApiError(422, "У Telegram-сообщества некорректное название.");
           const now = new Date();
+          const { error: expireError } = await db.from("promotions").update({ status: "expired" })
+            .eq("status", "active").gt("ends_at", now.toISOString());
+          if (expireError) throw new ApiError(500, "Не удалось освободить рекламное место.");
           const endsAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
           const { data: freeOrder, error: freeError } = await db.from("promotions").insert({
             community_id: null,
@@ -571,6 +581,11 @@ Deno.serve(async (req: Request) => {
           break;
         }
 
+        const nowForSlot = new Date().toISOString();
+        const { data: occupiedSlots, error: occupiedError } = await db.from("promotions")
+          .select("id").eq("status", "active").gt("ends_at", nowForSlot).limit(1);
+        if (occupiedError) throw new ApiError(500, "Не удалось проверить свободное рекламное место.");
+        if (occupiedSlots?.length) throw new ApiError(409, "Рекламное место уже занято. Попробуй позже, когда размещение завершится.");
         const communityId = positiveInteger(body.community_id);
         const { data: community, error: communityError } = await db.from("communities")
           .select("id,title,owner_tid,status").eq("id", communityId).eq("status", "approved")
