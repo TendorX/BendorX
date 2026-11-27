@@ -63,6 +63,9 @@ export default function App() {
   const [category, setCategory] = useState('all');
   const [sort, setSort] = useState('top');
   const [details, setDetails] = useState(null);
+  const [selectedPublication, setSelectedPublication] = useState(null);
+  const [publicationStats, setPublicationStats] = useState(null);
+  const [publicationStatsLoading, setPublicationStatsLoading] = useState(false);
   const [profilePage, setProfilePage] = useState('main');
   const [add, setAdd] = useState({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet' });
   const [imageFile, setImageFile] = useState(null);
@@ -321,6 +324,21 @@ export default function App() {
     setDetails(item);
   };
 
+  const openPublication = async (item) => {
+    setSelectedPublication(item);
+    setPublicationStats(null);
+    setPublicationStatsLoading(true);
+    setTab('publication-detail');
+    try {
+      const result = await api('community_stats', { id: item.id });
+      setPublicationStats(result);
+    } catch (err) {
+      notify(err.message || 'Не удалось загрузить статистику');
+    } finally {
+      setPublicationStatsLoading(false);
+    }
+  };
+
   const openTelegram = (username) => {
     const link = telegramLink(username);
     if (tg?.openTelegramLink) tg.openTelegramLink(link);
@@ -445,10 +463,10 @@ export default function App() {
   );
 
   const PageHeader = ({ eyebrow, title, subtitle, action }) => {
-    const showProfileBack = ['notifications', 'admin', 'profile-publications', 'profile-votes', 'profile-favorites'].includes(tab);
+    const showProfileBack = ['notifications', 'admin', 'profile-publications', 'profile-votes', 'profile-favorites', 'publication-detail'].includes(tab);
     return (
       <div className={`page-heading ${showProfileBack ? 'page-heading-with-back' : ''}`}>
-        {showProfileBack && <button className="icon-button page-back-button" aria-label="Назад в профиль" title="Назад в профиль" onClick={() => setTab('profile')}><ArrowLeft size={19}/></button>}
+        {showProfileBack && <button className="icon-button page-back-button" aria-label="Назад в профиль" title="Назад в профиль" onClick={() => setTab(tab === 'publication-detail' ? 'profile-publications' : 'profile')}><ArrowLeft size={19}/></button>}
         <div className="page-heading-copy">{eyebrow && <div className="eyebrow">{eyebrow}</div>}<h1>{title}</h1>{subtitle && <p>{subtitle}</p>}</div>
         {action}
       </div>
@@ -608,9 +626,39 @@ export default function App() {
   );
 
   const renderMyPublications = () => renderProfileSubpage(
-    'publications', 'Мои публикации', 'Статус заявок и статистика твоих сообществ.',
-    <div className="my-pubs">{myCommunities.length ? myCommunities.map((item)=><div className="my-pub" key={item.id}><div><b>{item.title}</b><small>@{item.username} · {fmt(item.votes)} голосов</small></div><span className={`status status-${item.status}`}>{STATUS[item.status]?.[0] || item.status}</span></div>) : <EmptyState text="У тебя пока нет публикаций."/>}</div>
+    'publications', 'Мои публикации', 'Нажми на публикацию, чтобы открыть её статистику.',
+    <div className="my-pubs">{myCommunities.length ? myCommunities.map((item)=><button className="my-pub my-pub-button" key={item.id} onClick={()=>openPublication(item)}><div className="my-pub-main"><b>{item.title}</b><small>@{item.username || 'telegram'} · {fmt(item.votes)} голосов</small></div><span className={`status status-${item.status}`}>{STATUS[item.status]?.[0] || item.status}</span><ChevronRight className="my-pub-chevron" size={17}/></button>) : <EmptyState text="У тебя пока нет публикаций."/>}</div>
   );
+
+  const renderPublicationDetail = () => {
+    const points = publicationStats?.daily_clicks || [];
+    const maxClicks = Math.max(1, ...points.map((point) => Number(point.clicks || 0)));
+    return (
+      <>
+        <PageHeader eyebrow="СТАТИСТИКА ПУБЛИКАЦИИ" title={selectedPublication?.title || 'Публикация'} subtitle={selectedPublication?.username ? `@${selectedPublication.username}` : 'Статистика сообщества'} action={<button className="secondary-button analytics-open-link" onClick={()=>openTelegram(selectedPublication?.username)}>Открыть канал <ExternalLink size={15}/></button>}/>
+        {!initData ? <TelegramGate/> : publicationStatsLoading ? <div className="analytics-loading"><LoaderCircle className="spin" size={22}/> Загружаем статистику…</div> : publicationStats ? <>
+          <div className="analytics-overview">
+            <div className="analytics-community">
+              <div className="analytics-avatar">{avatarUrl(selectedPublication || {}) ? <img src={avatarUrl(selectedPublication)} alt=""/> : (selectedPublication?.title || '?').slice(0,1).toUpperCase()}</div>
+              <div><b>{selectedPublication?.title}</b><small>{STATUS[selectedPublication?.status]?.[0] || selectedPublication?.status || 'Публикация'}</small></div>
+            </div>
+            <div className="metric-grid analytics-metrics">
+              <Metric icon={ExternalLink} value={fmt(publicationStats.clicks_today)} label="Переходы сегодня"/>
+              <Metric icon={Activity} value={fmt(publicationStats.clicks_week)} label="За 7 дней"/>
+              <Metric icon={Eye} value={fmt(publicationStats.clicks_all)} label="За всё время"/>
+              <Metric icon={ThumbsUp} value={fmt(publicationStats.votes_today)} label="Голосов сегодня"/>
+              <Metric icon={Trophy} value={fmt(publicationStats.votes_all)} label="Всего голосов"/>
+            </div>
+          </div>
+          <section className="analytics-chart-panel">
+            <div className="analytics-chart-heading"><div><h2>Переходы по дням</h2><p>Последние 14 дней</p></div><span><i/> Переходы</span></div>
+            {points.length ? <div className="analytics-chart">{points.map((point)=><div className="analytics-chart-column" key={point.date}><b>{fmt(point.clicks)}</b><div className="analytics-bar-track"><div className="analytics-bar-fill" style={{height:`${Math.max(Number(point.clicks)>0?5:1, Number(point.clicks || 0) / maxClicks * 100)}%`}}/></div><small>{new Date(`${point.date}T00:00:00`).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}</small></div>)}</div> : <EmptyState text="История переходов пока пуста."/>}
+          </section>
+          <p className="analytics-note">Переход засчитывается, когда пользователь нажимает «Открыть в Telegram» в BendorX. Голоса учитываются только действующие.</p>
+        </> : <EmptyState text="Не удалось получить статистику. Вернись в список и попробуй ещё раз."/>}
+      </>
+    );
+  };
 
   const renderMyVotes = () => renderProfileSubpage(
     'votes', 'Мои голосования', 'Сообщества, за которые ты отдавал голос.',
@@ -671,7 +719,7 @@ export default function App() {
     </>
   );
 
-  const body = tab === 'home' ? renderHome() : tab === 'catalog' ? renderCatalog() : tab === 'add' ? renderAdd() : tab === 'rating' ? renderRating() : tab === 'notifications' ? renderNotifications() : tab === 'admin' ? renderAdmin() : tab === 'profile-publications' ? renderMyPublications() : tab === 'profile-votes' ? renderMyVotes() : tab === 'profile-favorites' ? renderMyFavorites() : renderProfile();
+  const body = tab === 'home' ? renderHome() : tab === 'catalog' ? renderCatalog() : tab === 'add' ? renderAdd() : tab === 'rating' ? renderRating() : tab === 'notifications' ? renderNotifications() : tab === 'admin' ? renderAdmin() : tab === 'profile-publications' ? renderMyPublications() : tab === 'publication-detail' ? renderPublicationDetail() : tab === 'profile-votes' ? renderMyVotes() : tab === 'profile-favorites' ? renderMyFavorites() : renderProfile();
   const appContent = subscription?.subscribed ? body : <SubscriptionGate onCheck={() => refresh(true)} checking={refreshing} reason={subscription?.reason} error={error} />;
 
   return (
@@ -683,7 +731,7 @@ export default function App() {
         {appContent}
         {(loading || !loaderAnimationDone) && <BootLoader />}
       </main>
-      <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`} style={{'--nav-index': Math.max(0, nav.findIndex(([id]) => tab === id || (id === 'profile' && tab.startsWith('profile-'))))}} aria-label="Основная навигация"><span className="nav-active-indicator" aria-hidden="true"/>{nav.map(([id,Icon,label])=><button key={id} type="button" className={`nav-${id} ${(tab===id || (id==='profile' && tab.startsWith('profile-')))?'active':''} ${id==='add'?'add-nav':''}`} aria-label={label} aria-current={(tab===id || (id==='profile' && tab.startsWith('profile-')))?'page':undefined} onClick={()=>{if(id==='home')openHome();else if(id==='catalog')openCategories();else if(id==='profile'){setTab('profile');}else setTab(id);setMobileMenu(false);}}><span className="nav-icon-wrap"><Icon className="nav-icon" size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
+      <nav className={`bottom-nav ${mobileMenu?'nav-open':''}`} style={{'--nav-index': Math.max(0, nav.findIndex(([id]) => tab === id || (id === 'profile' && (tab.startsWith('profile-') || tab === 'publication-detail'))))}} aria-label="Основная навигация"><span className="nav-active-indicator" aria-hidden="true"/>{nav.map(([id,Icon,label])=><button key={id} type="button" className={`nav-${id} ${(tab===id || (id==='profile' && (tab.startsWith('profile-') || tab==='publication-detail')))?'active':''} ${id==='add'?'add-nav':''}`} aria-label={label} aria-current={(tab===id || (id==='profile' && (tab.startsWith('profile-') || tab==='publication-detail')))?'page':undefined} onClick={()=>{if(id==='home')openHome();else if(id==='catalog')openCategories();else if(id==='profile'){setTab('profile');}else setTab(id);setMobileMenu(false);}}><span className="nav-icon-wrap"><Icon className="nav-icon" size={id==='add'?22:19}/></span><small>{label}</small></button>)}</nav>
       {toast && <div className="toast-message">{toast}</div>}
       {refreshing && <div className="refresh-indicator"><LoaderCircle className="spin" size={15}/> Обновляем данные</div>}
       {promotionOpen && <div className="modal-backdrop" onClick={()=>setPromotionOpen(false)}>
