@@ -20,6 +20,7 @@ const STATUS = {
   rejected: ['Отклонено', 'rejected'], changes: ['Нужны исправления', 'changes'],
   hidden: ['Скрыто', 'hidden'], blocked: ['Заблокировано', 'blocked'], draft: ['Черновик', 'draft']
 };
+const CARD_FRAMES = [{"id":"none","label":"Без рамки"},{"id":"thin","label":"Тонкая"},{"id":"neon","label":"Неоновая"},{"id":"gradient","label":"Градиент"},{"id":"double","label":"Двойная"},{"id":"corners","label":"Угловая"},{"id":"gold","label":"Золотая"}];
 const CARD_THEMES = [{"id":"violet","label":"Фиолетовый","a":"#30245f","b":"#7655d9"},{"id":"ocean","label":"Океан","a":"#123b59","b":"#1689a8"},{"id":"sunset","label":"Закат","a":"#642b42","b":"#d66b54"},{"id":"emerald","label":"Изумруд","a":"#124c43","b":"#229b76"},{"id":"ruby","label":"Рубин","a":"#5c2037","b":"#bd4564"},{"id":"gold","label":"Золото","a":"#59421e","b":"#bd8a36"},{"id":"blue","label":"Синий","a":"#1c3268","b":"#456ed0"},{"id":"midnight","label":"Ночь","a":"#252b42","b":"#59627e"}];
 
 function fmt(value) {
@@ -67,7 +68,7 @@ export default function App() {
   const [publicationStats, setPublicationStats] = useState(null);
   const [publicationStatsLoading, setPublicationStatsLoading] = useState(false);
   const [profilePage, setProfilePage] = useState('main');
-  const [add, setAdd] = useState({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_emoji: null });
+  const [add, setAdd] = useState({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_frame: 'none', card_emoji: null });
   const [addCategoriesOpen, setAddCategoriesOpen] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
@@ -402,10 +403,10 @@ export default function App() {
       const avatar = await uploadAvatar();
       await api('submit', {
         username, title: add.title.trim(), description: add.description.trim(),
-        categories: add.category_ids.map(Number), kind: add.kind, card_theme: add.card_theme, card_emoji: null,
+        categories: add.category_ids.map(Number), kind: add.kind, card_theme: add.card_theme, card_frame: add.card_frame, card_emoji: null,
         tags: add.tags.split(',').map((x) => x.trim()).filter(Boolean).slice(0, 5).join(','), avatar
       });
-      setAdd({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_emoji: '✨' });
+      setAdd({ title: '', link: '', description: '', category_ids: [], kind: 'channel', tags: '', card_theme: 'violet', card_frame: 'none', card_emoji: null });
       setAddCategoriesOpen(false);
       setImageFile(null); setImagePreview('');
       await reloadEverything(); setTab('profile-publications');
@@ -443,7 +444,7 @@ export default function App() {
   const avatarUrl = (item) => media[item.id] ? `${CFG.url}/storage/v1/object/public/community-media/${media[item.id]}` : '';
 
   const CommunityCard = ({ item, compact = false, badge = '' }) => (
-    <article className={`community-card ${compact ? 'compact' : ''} card-theme-${CARD_THEMES.some((theme) => theme.id === item.card_theme) ? item.card_theme : 'default'} ${item.card_emoji ? 'has-card-emoji' : ''}`}>
+    <article className={`community-card ${compact ? 'compact' : ''} card-theme-${CARD_THEMES.some((theme) => theme.id === item.card_theme) ? item.card_theme : 'default'} card-frame-${CARD_FRAMES.some((frame) => frame.id === item.card_frame) ? item.card_frame : 'none'} ${item.card_emoji ? 'has-card-emoji' : ''}`}>
       {item.card_emoji && <div className="community-emoji-pattern" aria-hidden="true">{Array.from({length:12},(_,i)=><span key={i} className={`emoji-mark emoji-mark-${i+1}`}>{item.card_emoji}</span>)}</div>}
       <button className="community-main" onClick={() => openCommunity(item)}>
         {avatarUrl(item) ? <img className="avatar" src={avatarUrl(item)} alt="" /> : <div className="avatar fallback">{(item.title || '?').slice(0, 1).toUpperCase()}</div>}
@@ -569,7 +570,13 @@ export default function App() {
         <div className="card-theme-picker" role="group" aria-label="Выбор фона карточки">
           {CARD_THEMES.map((theme) => <button type="button" key={theme.id} className={`card-theme-option card-theme-${theme.id} ${add.card_theme === theme.id ? 'chosen' : ''}`} aria-pressed={add.card_theme === theme.id} onClick={() => setAdd({ ...add, card_theme: theme.id })}><span className="card-theme-swatch"/><b>{theme.label}</b>{add.card_theme === theme.id && <Check size={14}/>}</button>)}
         </div>
-        <div className={`card-live-preview card-theme-${add.card_theme}`}>
+        <label>Выбери рамку карточки</label>
+        <div className="card-frame-picker" role="group" aria-label="Выбор рамки карточки">
+          {CARD_FRAMES.map((frame) => <button type="button" key={frame.id} className={`card-frame-option ${add.card_frame === frame.id ? 'chosen' : ''}`} aria-pressed={add.card_frame === frame.id} onClick={() => setAdd(current => ({ ...current, card_frame: frame.id }))}>
+            <span className={`card-frame-sample card-frame-${frame.id}`}><i/></span><b>{frame.label}</b>{add.card_frame === frame.id && <Check size={14}/>}
+          </button>)}
+        </div>
+        <div className={`card-live-preview card-theme-${add.card_theme} card-frame-${add.card_frame}`}>
           <div className="card-preview-content"><small>ПРЕДПРОСМОТР КАРТОЧКИ</small><b>{add.title.trim() || 'Название твоего канала'}</b><span>{add.description.trim() || 'Здесь будет отображаться описание сообщества'}</span></div>
         </div>
         <label>Описание <small>до 500 символов</small></label><textarea rows={4} maxLength={500} value={add.description} onChange={(e) => setAdd({...add,description:e.target.value})} placeholder="Чем полезно ваше сообщество?"/>
