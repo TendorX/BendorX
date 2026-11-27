@@ -605,7 +605,7 @@ export default function App() {
           {badge && <span className="community-card-badge">{badge}</span>}
           <small>{item.username ? `@${item.username}` : ''} <i>·</i> {item.category || categoryLabel(item.category_id)}</small>
           {!compact && <span className="community-description">{item.description || 'Описание пока не добавлено.'}</span>}
-          <span className="community-meta"><span><ThumbsUp size={13}/>{fmt(item.votes)}</span><span><Flame size={13}/>{fmt(item.growth)} за 7 дней</span></span>
+          {!item.is_external_promotion && <span className="community-meta"><span><ThumbsUp size={13}/>{fmt(item.votes)}</span><span><Flame size={13}/>{fmt(item.growth)} за 7 дней</span></span>}
         </span>
       </button>
       {!item.is_external_promotion && <div className="community-actions">
@@ -636,12 +636,12 @@ export default function App() {
     <>
       {activePromotedCommunities.length > 0 && <section className="active-promotion-section">
         <div className="section-head"><div><div className="eyebrow">РЕКЛАМНЫЕ РАЗМЕЩЕНИЯ</div><h2>Продвигаются сейчас</h2></div></div>
-        <div className="community-list">{activePromotedCommunities.map(item=><div className="promotion-admin-item" key={item.promotion_id}>
+        <div className="community-list">{activePromotedCommunities.slice(0, 1).map(item=><div className="promotion-admin-item promotion-featured-card" key={item.promotion_id}>
           <CommunityCard item={item} badge="Реклама"/>
           {me?.role === 'master_admin' && <button type="button" className="promotion-remove-button" title="Убрать из баннера" aria-label={`Убрать ${item.title} из баннера`} onClick={()=>removePromotion(item.promotion_id)}><X size={15}/></button>}
         </div>)}</div>
       </section>}
-      <section className="promo-banner">
+      {activePromotedCommunities.length === 0 && <section className="promo-banner">
         <div className="promo-banner-content">
           <span className="eyebrow"><Star size={13}/> РЕКЛАМНОЕ РАЗМЕЩЕНИЕ</span>
           <h1>Продвинь свой канал<br/><em>в Bendor-X</em></h1>
@@ -649,7 +649,7 @@ export default function App() {
           <button className="primary-button promo-banner-button" onClick={()=>setPromotionOpen(true)}>Продвинуть за <Star size={15} fill="currentColor"/> Stars</button>
         </div>
         <div className="promo-banner-art"><div className="promo-star-orbit"/><Star size={76} fill="currentColor"/></div>
-      </section>
+      </section>}
       <div className="section-head home-section-heading">
         <div><h2>Все каналы</h2><p className="home-section-note">Сначала сообщества с наибольшим количеством голосов.</p></div>
       </div>
