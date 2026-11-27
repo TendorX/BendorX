@@ -759,13 +759,18 @@ Deno.serve(async (req: Request) => {
         }
         const communityId = positiveInteger(body.id);
         const { data: target, error: targetError } = await db
-          .from("communities").select("id,title,username").eq("id", communityId).maybeSingle();
+          .from("communities").select("id,title,username,avatar_path").eq("id", communityId).maybeSingle();
         if (targetError) throw new ApiError(500, "Не удалось найти сообщество");
         if (!target) throw new ApiError(404, "Сообщество уже удалено");
         const { error: deleteError } = await db.from("communities").delete().eq("id", communityId);
         if (deleteError) {
           console.error("Permanent community delete failed:", deleteError.code);
           throw new ApiError(500, "Не удалось полностью удалить сообщество. Проверьте связи в базе данных.");
+        }
+        // Удаляем фотографию канала из Storage; сбой очистки файла не возвращает запись в каталог.
+        if (target.avatar_path) {
+          const { error: mediaError } = await db.storage.from("community-media").remove([target.avatar_path]);
+          if (mediaError) console.error("Community avatar cleanup failed:", mediaError.message);
         }
         const { error: auditError } = await db.from("audit_log").insert({
           actor_tid: tid, action: "community_permanent_delete",
@@ -780,21 +785,31 @@ Deno.serve(async (req: Request) => {
         throw new ApiError(410, "Восстановление удалённых сообществ отключено: удаление теперь окончательное.");
       }
       case "admin_list": {
-        const deleted = body.deleted === true;
-        const listed = await rpc("tx_admin_communities", { p_actor: tid, p_deleted: deleted });
-        if (deleted && Array.isArray(listed) && listed.length) {
-          const ids = listed.map((item: any) => positiveInteger(item.id)).filter(Boolean);
-          if (ids.length) {
-            const { error: purgeError } = await db.from("communities").delete().in("id", ids);
-            if (purgeError) {
-              console.error("Legacy deleted communities purge failed:", purgeError.code);
-              throw new ApiError(500, "Не удалось очистить старые удалённые сообщества.");
-            }
+        // Старые записи, ранее скрытые через deleted_at, окончательно очищаются
+        // при открытии панели. Новые удаления сразу выполняются через DELETE.
+        const legacyDeleted = await rpc("tx_admin_communities", {
+          p_actor: tid,
+          p_deleted: true,
+        }) as Array<{ id: number; avatar_path?: string | null }>;
+        if (Array.isArray(legacyDeleted) && legacyDeleted.length) {
+          const ids = legacyDeleted.map((item) => positiveInteger(item.id));
+          const avatarPaths = legacyDeleted
+            .map((item) => item.avatar_path)
+            .filter((path): path is string => typeof path === "string" && path.length > 0);
+          if (avatarPaths.length) {
+            const { error: mediaError } = await db.storage.from("community-media").remove(avatarPaths);
+            if (mediaError) console.error("Legacy deleted community media cleanup failed:", mediaError.message);
           }
-          data = [];
-        } else {
-          data = listed;
+          const { error: purgeError } = await db.from("communities").delete().in("id", ids);
+          if (purgeError) {
+            console.error("Legacy deleted communities purge failed:", purgeError.code);
+            throw new ApiError(500, "Не удалось окончательно очистить старые удалённые сообщества.");
+          }
         }
+        data = await rpc("tx_admin_communities", {
+          p_actor: tid,
+          p_deleted: false,
+        });
         break;
       }
 
