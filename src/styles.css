@@ -1181,3 +1181,33 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 .card-frame-art-royal{
   filter:drop-shadow(0 2px 2px rgba(0,0,0,.9));
 }
+
+
+/* Botanical reference frame: full horizontal border with preserved corner ornaments */
+.community-card.card-frame-botanical,
+.card-live-preview.card-frame-botanical{
+  position:relative;
+  isolation:isolate;
+  overflow:visible !important;
+  border-color:transparent !important;
+}
+.community-card.card-frame-botanical::after,
+.card-live-preview.card-frame-botanical::after{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  z-index:3;
+  pointer-events:none;
+  border:15px solid transparent;
+  border-image-source:url("/BendorX/card-frame-botanical.svg");
+  border-image-slice:85 85 fill;
+  border-image-width:15px;
+  border-image-outset:2px;
+  border-image-repeat:stretch;
+}
+.community-card.card-frame-botanical .community-main,
+.community-card.card-frame-botanical .community-actions,
+.card-live-preview.card-frame-botanical .card-preview-content{
+  position:relative;
+  z-index:4;
+}
