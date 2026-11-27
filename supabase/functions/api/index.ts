@@ -15,7 +15,7 @@ const HEADERS = {
 };
 
 const encoder = new TextEncoder();
-const ALLOWED_CARD_THEMES = new Set(['violet','ocean','sunset','emerald','ruby','gold','blue','midnight']);
+const ALLOWED_CARD_THEMES = new Set(['violet','ocean','sunset','emerald','ruby','gold','blue','midnight','crimson','coral','pink','lavender','ice','turquoise','lime','forest','amber','copper','graphite','plum','mint','sand','aurora','galaxy','tropical','default']);
 const ALLOWED_CARD_FRAMES = new Set(['none','claws','thorns','chain','royal']);
 const ALLOWED_CARD_EMOJIS = new Set(['✨','🔥','⚡','🚀','💎','🎮','👑','🌸','⭐','🦋','🐼','🎯','💫','🌙','🍀','🎧','🧩','❤️','☀️','🪐']);
 
