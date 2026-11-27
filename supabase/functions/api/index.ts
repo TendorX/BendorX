@@ -470,6 +470,14 @@ Deno.serve(async (req: Request) => {
         break;
       }
 
+      case "community_stats": {
+        data = await rpc("tx_community_stats", {
+          p_tid: tid,
+          p_id: positiveInteger(body.id),
+        });
+        break;
+      }
+
       case "click": {
         const communityId = positiveInteger(body.id);
 
