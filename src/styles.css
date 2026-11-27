@@ -974,3 +974,26 @@ body { min-width:320px; overflow-x:hidden; -webkit-text-size-adjust:100%; }
     font-size: 8px;
   }
 }
+
+
+/* Add form: compact expandable category selector */
+.add-category-selector{margin-top:9px}
+.add-category-trigger{width:100%;min-height:70px;display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid rgba(255,255,255,.10);border-radius:15px;background:linear-gradient(115deg,#20232d 0%,#191c24 100%);color:#f4f2fa;text-align:left;cursor:pointer;transition:border-color .2s ease,background .2s ease,box-shadow .2s ease}
+.add-category-trigger:hover,.add-category-trigger.is-open{border-color:rgba(169,148,255,.48);background:linear-gradient(115deg,#252338 0%,#1b1d29 100%);box-shadow:0 0 0 1px rgba(151,127,255,.10),0 8px 22px rgba(0,0,0,.12)}
+.add-category-trigger-icon{width:39px;height:39px;flex:0 0 39px;display:grid;place-items:center;border:1px solid rgba(177,157,255,.19);border-radius:12px;background:rgba(151,127,255,.12);color:#c2b3ff}
+.add-category-trigger-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+.add-category-trigger-copy b{font-size:12px;font-weight:750;color:#f4f2fa}
+.add-category-trigger-copy small{overflow:hidden;color:#9694a5;font-size:10px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+.add-category-trigger-count{flex:none;padding:6px 9px;border:1px solid rgba(255,213,91,.2);border-radius:9px;background:rgba(255,205,65,.09);color:#ffd45b;font-size:10px;font-weight:800;font-variant-numeric:tabular-nums}
+.add-category-trigger-chevron{flex:none;color:#9994ad;transition:transform .22s ease}
+.add-category-trigger.is-open .add-category-trigger-chevron{transform:rotate(180deg);color:#c6b7ff}
+.add-category-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px;padding:10px;border:1px solid rgba(255,255,255,.07);border-radius:15px;background:rgba(12,14,19,.55);animation:addCategoriesReveal .2s ease-out}
+.add-category-grid .category-tile{min-width:0;min-height:61px;padding:9px 10px;gap:8px}
+.add-category-grid .category-tile>span:nth-child(2){min-width:0;flex:1}
+.add-category-grid .category-tile b{display:block;overflow:hidden;font-size:10px;line-height:1.3;text-overflow:ellipsis}
+.add-category-grid .category-tile small{font-size:9px}
+.add-category-grid .category-symbol{width:31px;height:31px;flex:0 0 31px}
+.add-category-grid .category-tile>svg{flex:none;width:14px}
+.add-category-grid .category-tile:disabled{opacity:.38;cursor:not-allowed}
+@keyframes addCategoriesReveal{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:380px){.add-category-grid{gap:7px;padding:8px}.add-category-grid .category-tile{padding:8px 7px;gap:6px}.add-category-grid .category-symbol{width:27px;height:27px;flex-basis:27px}.add-category-grid .category-tile b{font-size:9px}}
