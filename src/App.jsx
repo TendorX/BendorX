@@ -46,6 +46,10 @@ export default function App() {
   const [categoryQuery, setCategoryQuery] = useState('');
   const [promotionOpen, setPromotionOpen] = useState(false);
   const [promotionCommunityId, setPromotionCommunityId] = useState('');
+  const [promotionTelegramLink, setPromotionTelegramLink] = useState('');
+  const [promotionPreview, setPromotionPreview] = useState(null);
+  const [promotionPreviewLoading, setPromotionPreviewLoading] = useState(false);
+  const [promotionPreviewMessage, setPromotionPreviewMessage] = useState('');
   const [promotionDuration, setPromotionDuration] = useState('3');
   const [promotionPurchasing, setPromotionPurchasing] = useState(false);
   const [activePromotions, setActivePromotions] = useState([]);
@@ -131,6 +135,33 @@ export default function App() {
     const rows = await api('active_promotions');
     setActivePromotions(rows || []);
   }, [api, initData]);
+
+  const fetchPromotionTelegramInfo = async () => {
+    const username = parseTelegramLink(promotionTelegramLink);
+    if (!username) return notify('Введи корректную публичную ссылку t.me или @username.');
+    setPromotionPreviewLoading(true);
+    setPromotionPreview(null);
+    setPromotionCommunityId('');
+    setPromotionPreviewMessage('');
+    try {
+      const info = await api('telegram_preview', { username });
+      setPromotionPreview(info);
+      const existing = communities.find(item =>
+        String(item.username || '').replace(/^@/, '').toLowerCase() === username &&
+        item.status === 'approved'
+      );
+      if (existing) {
+        setPromotionCommunityId(String(existing.id));
+        setPromotionPreviewMessage('Канал найден в каталоге и готов к размещению.');
+      } else {
+        setPromotionPreviewMessage('Данные загружены, но канал ещё не опубликован в BendorX. Сначала добавь его во вкладке «Добавить» и дождись одобрения.');
+      }
+    } catch (err) {
+      notify(err.message || 'Не удалось получить информацию из Telegram.');
+    } finally {
+      setPromotionPreviewLoading(false);
+    }
+  };
 
   const startPromotionPurchase = async () => {
     if (!promotionCommunityId) return notify('Сначала выбери опубликованный канал.');
@@ -896,15 +927,31 @@ export default function App() {
           <h2>Выставить канал на продвижение</h2>
           <p className="promotion-modal-copy">Выбери опубликованное сообщество и срок рекламного размещения.</p>
           {!initData ? <TelegramGate/> : <>
-            <label>{me?.role === 'master_admin' ? 'Сообщество для размещения' : 'Моё сообщество'}</label>
-            <select className="promotion-select" value={promotionCommunityId} onChange={(e)=>setPromotionCommunityId(e.target.value)}>
-              <option value="">Выбери опубликованный канал</option>
-              {(me?.role === 'master_admin' ? communities : myCommunities).filter(item=>item.status==='approved').map(item=><option key={item.id} value={item.id}>{item.title}</option>)}
-            </select>
+            {me?.role === 'master_admin' ? <>
+              <label>Ссылка на Telegram-канал</label>
+              <div className="telegram-link-loader promotion-telegram-loader">
+                <input value={promotionTelegramLink} onChange={(e)=>{setPromotionTelegramLink(e.target.value);setPromotionPreview(null);setPromotionCommunityId('');setPromotionPreviewMessage('');}} placeholder="https://t.me/your_channel или @username"/>
+                <button type="button" className="telegram-fetch-button" onClick={fetchPromotionTelegramInfo} disabled={promotionPreviewLoading}>
+                  {promotionPreviewLoading ? <LoaderCircle className="spin" size={16}/> : <RefreshCw size={16}/>}
+                  {promotionPreviewLoading ? 'Загружаем' : 'Загрузить'}
+                </button>
+              </div>
+              {promotionPreview && <div className="promotion-channel-preview">
+                {promotionPreview.avatar_data ? <img src={promotionPreview.avatar_data} alt="Фото канала"/> : <div className="promotion-channel-fallback">{(promotionPreview.title || '?').slice(0,1).toUpperCase()}</div>}
+                <div><b>{promotionPreview.title || 'Без названия'}</b><small>@{promotionPreview.username} · {promotionPreview.kind === 'channel' ? 'Канал' : 'Группа / чат'}</small><p>{promotionPreview.description || 'Описание не указано.'}</p></div>
+              </div>}
+              {promotionPreviewMessage && <small className={promotionCommunityId ? 'telegram-info-success' : 'promotion-preview-warning'}>{promotionCommunityId ? <Check size={13}/> : <CircleHelp size={13}/>} {promotionPreviewMessage}</small>}
+            </> : <>
+              <label>Моё сообщество</label>
+              <select className="promotion-select" value={promotionCommunityId} onChange={(e)=>setPromotionCommunityId(e.target.value)}>
+                <option value="">Выбери опубликованный канал</option>
+                {myCommunities.filter(item=>item.status==='approved').map(item=><option key={item.id} value={item.id}>{item.title}</option>)}
+              </select>
+            </>}
             <label>Срок размещения</label>
             <div className="promotion-duration-row">{[['1','1 день','50'],['3','3 дня','120'],['7','7 дней','250']].map(([value,label,price])=><button type="button" key={value} className={promotionDuration===value?'active':''} onClick={()=>setPromotionDuration(value)}><span>{label}</span><b>{me?.role === 'master_admin' ? '0 ⭐' : `${price} ⭐`}</b></button>)}</div>
-            {!myCommunities.some(item=>item.status==='approved') && <p className="promotion-modal-copy">Сначала добавь канал и дождись одобрения модератора. После этого он появится здесь.</p>}
-            <button className="primary-button full" onClick={startPromotionPurchase} disabled={promotionPurchasing || !promotionCommunityId || !myCommunities.some(item=>Number(item.id)===Number(promotionCommunityId) && item.status==='approved')}>{promotionPurchasing ? (me?.role === 'master_admin' ? 'Размещаем…' : 'Создаём счёт…') : (me?.role === 'master_admin' ? <>Разместить бесплатно <Star size={15} fill="currentColor"/></> : <>Оплатить {({1:50,3:120,7:250})[Number(promotionDuration)]} <Star size={15} fill="currentColor"/></>)}</button>
+            {me?.role !== 'master_admin' && !myCommunities.some(item=>item.status==='approved') && <p className="promotion-modal-copy">Сначала добавь канал и дождись одобрения модератора. После этого он появится здесь.</p>}
+            <button className="primary-button full" onClick={startPromotionPurchase} disabled={promotionPurchasing || !promotionCommunityId || (me?.role !== 'master_admin' && !myCommunities.some(item=>Number(item.id)===Number(promotionCommunityId) && item.status==='approved'))}>{promotionPurchasing ? (me?.role === 'master_admin' ? 'Размещаем…' : 'Создаём счёт…') : (me?.role === 'master_admin' ? <>Разместить бесплатно <Star size={15} fill="currentColor"/></> : <>Оплатить {({1:50,3:120,7:250})[Number(promotionDuration)]} <Star size={15} fill="currentColor"/></>)}</button>
           </>}
         </section>
       </div>}
